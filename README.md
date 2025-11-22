@@ -43,11 +43,16 @@ src/
 
 ### Variables de Entorno
 
-Crea los siguientes archivos en la raíz del proyecto:
+Crea un archivo `.env` basado en `.env.example`:
+
+```bash
+# Copiar el archivo de ejemplo
+cp .env.example .env
+```
 
 **`.env.development`** (Para desarrollo):
 ```env
-VITE_API_BASE_URL=http://localhost:3000/api
+VITE_API_BASE_URL=http://localhost:3030/api
 VITE_APP_NAME=DICRI Indicios
 VITE_APP_ENV=development
 ```
@@ -58,6 +63,8 @@ VITE_API_BASE_URL=http://localhost:3030/api
 VITE_APP_NAME=DICRI Indicios
 VITE_APP_ENV=production
 ```
+
+> **Nota:** Los archivos `.env` y `.env.development` no se suben al repositorio por seguridad. Usa `.env.example` como referencia.
 
 ## 📦 Instalación
 
@@ -84,16 +91,51 @@ El servidor estará disponible en `http://localhost:5173`
 
 ## 🐳 Docker
 
+### Requisitos Previos
+
+Crear la red de Docker (solo una vez):
+```bash
+docker network create dicri-network
+```
+
 ### Construir y ejecutar con Docker Compose
 
-**Desarrollo (Puerto 8080):**
+**Desarrollo con Hot Reload (Puerto 8080):**
 ```bash
 docker-compose up -d frontend-dev
 ```
 
-**Producción (Puerto 8081):**
+El modo desarrollo incluye:
+- ✅ Hot Module Replacement (HMR)
+- ✅ Recarga automática al modificar archivos
+- ✅ Volúmenes montados para sincronización en tiempo real
+- ✅ File polling habilitado para Windows/Docker
+
+Accede a: `http://localhost:8080`
+
+**Ver logs en desarrollo:**
+```bash
+docker-compose logs -f frontend-dev
+```
+
+**Producción con Nginx (Puerto 8081):**
 ```bash
 docker-compose up -d frontend-prod
+```
+
+Accede a: `http://localhost:8081`
+
+### Detener y limpiar contenedores
+
+```bash
+# Detener servicio de desarrollo
+docker-compose down frontend-dev
+
+# Detener servicio de producción
+docker-compose down frontend-prod
+
+# Detener todos los servicios
+docker-compose down
 ```
 
 ### Construir imagen Docker manualmente
@@ -202,10 +244,10 @@ El sistema está optimizado para:
 
 ## 🌐 Puertos
 
-- **Desarrollo Local**: `5173`
-- **Preview Local**: `4173`
-- **Docker Dev**: `8080`
-- **Docker Prod**: `8081`
+- **Desarrollo Local**: `5173` (npm run dev)
+- **Preview Local**: `4173` (npm run preview)
+- **Docker Dev (Hot Reload)**: `8080` (Vite en Docker)
+- **Docker Prod (Nginx)**: `8081`
 
 ## 📝 Credenciales por Defecto
 
