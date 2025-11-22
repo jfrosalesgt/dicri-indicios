@@ -217,6 +217,12 @@ Respuesta actualización (200):
 
 > El listado admite filtros: estado_revision, id_fiscalia, id_usuario_registro, activo.
 
+### Crear Indicio en Expediente
+
+POST /api/expedientes/{id}/indicios
+Campos: codigo_indicio, id_escena, id_tipo_indicio, descripcion_corta, ubicacion_especifica?, fecha_hora_recoleccion?
+Estado inicial: RECOLECTADO
+
 ---
 
 ## 📂 Catálogos Rápidos

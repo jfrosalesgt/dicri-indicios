@@ -23,6 +23,10 @@ export interface IIndicioRepository {
   getAll(params?: { id_escena?: number; id_tipo_indicio?: number; estado?: EstadoIndicio; activo?: boolean }): Promise<ApiResponse<Indicio[]>>;
   getById(id: number): Promise<ApiResponse<Indicio>>;
   create(data: CreateIndicioRequest): Promise<ApiResponse<Indicio>>;
+  // Nuevo: crear indicio dentro de un expediente
+  createForExpediente(expedienteId: number, data: CreateIndicioRequest): Promise<ApiResponse<Indicio>>;
+  // Nuevo: listar indicios de un expediente
+  getByExpediente(expedienteId: number): Promise<ApiResponse<Indicio[]>>;
   update(id: number, data: UpdateIndicioRequest): Promise<ApiResponse<void>>;
   delete(id: number): Promise<ApiResponse<void>>;
 }

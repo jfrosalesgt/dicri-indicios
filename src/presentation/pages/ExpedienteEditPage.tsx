@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MenuItem, TextField, Button, Alert, Card, Box, Typography } from '@mui/material';
+import { MenuItem, TextField, Button, Alert, Card, Box, Typography, Grid } from '@mui/material';
 import { expedienteRepository } from '../../infrastructure/repositories/ExpedienteRepository';
 import { fiscaliaRepository } from '../../infrastructure/repositories/FiscaliaRepository';
 import type { EstadoRevisionDicri, Expediente } from '../../domain/entities/Expediente';
@@ -76,52 +76,74 @@ export const ExpedienteEditPage = () => {
   );
 
   return (
-    <Box maxWidth={800}>
-      <Typography variant="h5" mb={3} fontWeight={600}>Editar Expediente</Typography>
-      <Card sx={{ p:{ xs:3, md:4 }, borderRadius:3 }}>
-        <Box component="form" display="flex" flexDirection="column" gap={2} onSubmit={handleSubmit}>
+    <Box width="100%">
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
+        <Button variant="outlined" onClick={() => navigate('/dashboard/expedientes')}>← Volver</Button>
+        <Typography variant="h5" fontWeight={600}>Editar Expediente</Typography>
+      </Box>
+      <Card sx={{ p:3, borderRadius:3, width:'100%', boxSizing:'border-box' }}>
+        <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={3}>
+          {/* Alertas */}
           {error && <Alert severity="error">{error}</Alert>}
           {done && <Alert severity="success">Expediente actualizado</Alert>}
-          <TextField label="Código Caso" value={expediente.codigo_caso} disabled fullWidth />
-          <TextField label="Nombre Caso" value={nombreCaso} onChange={e=>setNombreCaso(e.target.value)} required disabled={saving} />
-          <TextField label="Fecha Inicio" type="date" value={fechaInicio} onChange={e=>setFechaInicio(e.target.value)} required disabled={saving} InputLabelProps={{ shrink:true }} />
-          <TextField select label="Fiscalía" value={idFiscalia} onChange={e=>setIdFiscalia(Number(e.target.value))} required disabled={saving}>
-            {fiscalias.map(f=> <MenuItem key={f.id_fiscalia} value={f.id_fiscalia}>{f.nombre_fiscalia}</MenuItem>)}
-          </TextField>
-          <TextField
-            select
-            label="Estado Revisión"
-            value={estadoRev}
-            onChange={e=>setEstadoRev(e.target.value as EstadoRevisionDicri)}
-            disabled={saving}
-          >
-            {estados.map(es=> <MenuItem key={es} value={es}>{es}</MenuItem>)}
-          </TextField>
-          <TextField
-            select
-            label="Activo"
-            value={activo ? 'true':'false'}
-            onChange={e=>setActivo(e.target.value === 'true')}
-            disabled={saving}
-          >
-            <MenuItem value="true">Activo</MenuItem>
-            <MenuItem value="false">Inactivo</MenuItem>
-          </TextField>
-          <TextField
-            label="Descripción Hechos"
-            value={descripcionHechos}
-            onChange={e=>setDescripcionHechos(e.target.value)}
-            multiline
-            minRows={3}
-            fullWidth
-            disabled={saving}
-          />
-          <Button type="submit" variant="contained" disabled={saving || !nombreCaso.trim() || !fechaInicio || !idFiscalia}>
-            {saving ? 'Guardando...' : 'Guardar Cambios'}
-          </Button>
-          <Button variant="text" onClick={() => navigate(`/dashboard/expedientes/${expediente.id_investigacion}`)} disabled={saving}>
-            Cancelar
-          </Button>
+          {/* Grid de campos */}
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={4}>
+              <TextField label="Código Caso" value={expediente.codigo_caso} disabled fullWidth />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField label="Nombre Caso" value={nombreCaso} onChange={e=>setNombreCaso(e.target.value)} required disabled={saving} fullWidth />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField label="Fecha Inicio" type="date" value={fechaInicio} onChange={e=>setFechaInicio(e.target.value)} required disabled={saving} InputLabelProps={{ shrink:true }} fullWidth />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField select label="Fiscalía" value={idFiscalia} onChange={e=>setIdFiscalia(Number(e.target.value))} required disabled={saving} fullWidth>
+                {fiscalias.map(f=> <MenuItem key={f.id_fiscalia} value={f.id_fiscalia}>{f.nombre_fiscalia}</MenuItem>)}
+              </TextField>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField select label="Estado Revisión" value={estadoRev} onChange={e=>setEstadoRev(e.target.value as EstadoRevisionDicri)} disabled={saving} fullWidth>
+                {estados.map(es=> <MenuItem key={es} value={es}>{es}</MenuItem>)}
+              </TextField>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField select label="Activo" value={activo ? 'true':'false'} onChange={e=>setActivo(e.target.value === 'true')} disabled={saving} fullWidth>
+                <MenuItem value="true">Activo</MenuItem>
+                <MenuItem value="false">Inactivo</MenuItem>
+              </TextField>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Descripción Hechos"
+                value={descripcionHechos}
+                onChange={e=>setDescripcionHechos(e.target.value)}
+                multiline
+                minRows={3}
+                fullWidth
+                disabled={saving}
+              />
+            </Grid>
+          </Grid>
+          {/* Botones */}
+          <Box display="flex" gap={2} flexWrap="wrap" justifyContent="flex-start">
+            <Button type="submit" variant="contained" disabled={saving || !nombreCaso.trim() || !fechaInicio || !idFiscalia}>
+              {saving ? 'Guardando...' : 'Guardar Cambios'}
+            </Button>
+            <Button variant="text" onClick={() => navigate(`/dashboard/expedientes/${expediente.id_investigacion}`)} disabled={saving}>
+              Cancelar
+            </Button>
+            {estadoRev === 'EN_REGISTRO' && (
+              <>
+                <Button variant="outlined" onClick={() => navigate(`/dashboard/expedientes/${expediente.id_investigacion}/escenas`)} disabled={saving}>
+                  Ver Escenas
+                </Button>
+                <Button variant="outlined" onClick={() => navigate(`/dashboard/expedientes/${expediente.id_investigacion}/indicios`)} disabled={saving}>
+                  Ver Indicios
+                </Button>
+              </>
+            )}
+          </Box>
         </Box>
       </Card>
     </Box>

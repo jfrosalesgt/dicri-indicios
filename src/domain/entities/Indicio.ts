@@ -11,9 +11,15 @@ export interface Indicio {
   id_usuario_recolector?: number;
   estado_actual: EstadoIndicio;
   activo: boolean;
+  // Campos adicionales en respuesta de creación vía /expedientes/{id}/indicios
+  tipo_indicio?: string;
   nombre_escena?: string;
-  nombre_tipo?: string;
-  nombre_recolector?: string;
+  direccion_escena?: string;
+  codigo_caso?: string;
+  nombre_caso?: string;
+  nombre_fiscalia?: string;
+  recolector_nombre?: string;
+  recolector_apellido?: string;
   usuario_creacion?: string;
   fecha_creacion?: string;
   usuario_actualizacion?: string | null;

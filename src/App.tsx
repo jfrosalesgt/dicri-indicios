@@ -17,6 +17,21 @@ import { FiscaliaCreatePage } from './presentation/pages/FiscaliaCreatePage';
 import { TiposIndicioListPage } from './presentation/pages/TiposIndicioListPage';
 import { TipoIndicioDetailPage } from './presentation/pages/TipoIndicioDetailPage';
 import { TipoIndicioCreatePage } from './presentation/pages/TipoIndicioCreatePage';
+import { RevisionExpedientesPage } from './presentation/pages/RevisionExpedientesPage';
+import { ReportesPage } from './presentation/pages/ReportesPage';
+import { AdminRoute } from './presentation/routes/AdminRoute';
+import { AdminHomePage } from './presentation/pages/AdminHomePage';
+import { RolesListPage } from './presentation/pages/RolesListPage';
+import { PerfilesListPage } from './presentation/pages/PerfilesListPage';
+import { EscenasListPage } from './presentation/pages/EscenasListPage';
+import { IndiciosListPage } from './presentation/pages/IndiciosListPage';
+import { IndiciosExpedientePage } from './presentation/pages/IndiciosExpedientePage';
+import { IndicioCreatePage } from './presentation/pages/IndicioCreatePage';
+import { IndicioEditPage } from './presentation/pages/IndicioEditPage';
+import { ScenesExpedientePage } from './presentation/pages/ScenesExpedientePage';
+import { SceneCreatePage } from './presentation/pages/SceneCreatePage';
+import { SceneEditPage } from './presentation/pages/SceneEditPage';
+import { SceneIndiciosPage } from './presentation/pages/SceneIndiciosPage';
 
 function App() {
   return (
@@ -34,7 +49,20 @@ function App() {
                 <Route index element={<ExpedientesListPage />} />
                 <Route path="new" element={<ExpedienteCreatePage />} />
                 <Route path=":id" element={<ExpedienteDetailPage />} />
-                <Route path=":id/edit" element={<ExpedienteEditPage />} />  {/* Nuevo */}
+                <Route path=":id/edit" element={<ExpedienteEditPage />} />
+                <Route path=":id/escenas">
+                  <Route index element={<ScenesExpedientePage />} />
+                  <Route path="new" element={<SceneCreatePage />} />
+                  <Route path=":escenaId/edit" element={<SceneEditPage />} />
+                  <Route path=":escenaId/indicios" element={<SceneIndiciosPage />} />
+                  <Route path=":escenaId/indicios/new" element={<IndicioCreatePage />} /> {/* nuevo: crear indicio desde escena */}
+                </Route>
+                <Route path=":id/indicios">
+                  {/* Indicios por expediente ya existentes */}
+                  <Route index element={<IndiciosExpedientePage />} />
+                  <Route path="new" element={<IndicioCreatePage />} />
+                  <Route path=":indicioId/edit" element={<IndicioEditPage />} />
+                </Route>
               </Route>
               <Route path="fiscalias">
                 <Route index element={<FiscaliasListPage />} />
@@ -50,9 +78,15 @@ function App() {
               <Route path="investigaciones" element={<PlaceholderPage title="Investigaciones (Implementar vistas similares)" />} />
               {/* Indicios */}
               <Route path="indicios" element={<PlaceholderPage title="Indicios (Implementar vistas similares)" />} />
-              <Route path="revision" element={<PlaceholderPage title="Revisión de Expedientes" />} />
-              <Route path="reportes" element={<PlaceholderPage title="Informes y Estadísticas" />} />
-              <Route path="admin/*" element={<PlaceholderPage title="Administración" />} />
+              <Route path="revision" element={<RevisionExpedientesPage />} />
+              <Route path="reportes" element={<ReportesPage />} />
+              <Route path="admin" element={<AdminRoute />}>
+                <Route index element={<AdminHomePage />} />
+                <Route path="roles" element={<RolesListPage />} />
+                <Route path="perfiles" element={<PerfilesListPage />} />
+                <Route path="escenas" element={<EscenasListPage />} />
+                <Route path="indicios" element={<IndiciosListPage />} />
+              </Route>
               
               <Route path="change-password" element={<ChangePasswordPage />} />
             </Route>

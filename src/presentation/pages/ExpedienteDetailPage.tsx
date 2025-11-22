@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Card, Typography, Chip, Button, Alert, Grid, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Box, Card, Typography, Chip, Button, Alert, Grid, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress } from '@mui/material';
 import { expedienteRepository } from '../../infrastructure/repositories/ExpedienteRepository';
 import type { Expediente } from '../../domain/entities/Expediente';
+import { escenaRepository } from '../../infrastructure/repositories/EscenaRepository';
+import { indicioRepository } from '../../infrastructure/repositories/IndicioRepository';
 
 export const ExpedienteDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +14,12 @@ export const ExpedienteDetailPage = () => {
   const [error, setError] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewError, setReviewError] = useState('');
+  const [scenesCount, setScenesCount] = useState(0);
+  const [indiciosCount, setIndiciosCount] = useState(0);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -43,6 +51,45 @@ export const ExpedienteDetailPage = () => {
     } finally {
       setDeleting(false);
       setConfirmOpen(false);
+    }
+  };
+
+  const openReviewDialog = async () => {
+    if (!expediente) return;
+    setReviewOpen(true);
+    setReviewLoading(true);
+    setReviewError('');
+    try {
+      const [scRes, inRes] = await Promise.all([
+        escenaRepository.getByExpediente(expediente.id_investigacion),
+        indicioRepository.getByExpediente(expediente.id_investigacion)
+      ]);
+      if (scRes.success && scRes.data) setScenesCount(scRes.data.length);
+      if (inRes.success && inRes.data) setIndiciosCount(inRes.data.length);
+      if (!scRes.success) setReviewError(scRes.message || 'Error al cargar escenas');
+      if (!inRes.success) setReviewError(inRes.message || 'Error al cargar indicios');
+    } catch (e:any) {
+      setReviewError(e.message || 'Error al cargar resumen');
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
+  const sendToReview = async () => {
+    if (!expediente) return;
+    setSending(true);
+    setReviewError('');
+    try {
+      const res = await expedienteRepository.update(expediente.id_investigacion, {
+        estado_revision_dicri: 'PENDIENTE_REVISION'
+      });
+      if (!res.success) throw new Error(res.message || 'Error al enviar a revisión');
+      setExpediente({ ...expediente, estado_revision_dicri: 'PENDIENTE_REVISION' });
+      setReviewOpen(false);
+    } catch (e:any) {
+      setReviewError(e.message || 'Error al enviar a revisión');
+    } finally {
+      setSending(false);
     }
   };
 
@@ -101,9 +148,16 @@ export const ExpedienteDetailPage = () => {
             </Grid>
           ))}
         </Grid>
-        <Box mt={4} display="flex" gap={2}>
+        <Box mt={4} display="flex" gap={2} flexWrap="wrap">
           <Button variant="contained" onClick={() => navigate(`/dashboard/expedientes/${expediente.id_investigacion}/edit`)}>Editar</Button>
           <Button variant="outlined" color="error" onClick={() => setConfirmOpen(true)} disabled={deleting}>Eliminar</Button>
+          {expediente.estado_revision_dicri === 'EN_REGISTRO' && (
+            <>
+              <Button variant="outlined" onClick={() => navigate(`/dashboard/expedientes/${expediente.id_investigacion}/escenas`)}>Ver Escenas</Button>
+              <Button variant="outlined" onClick={() => navigate(`/dashboard/expedientes/${expediente.id_investigacion}/indicios`)}>Ver Indicios</Button>
+              <Button variant="contained" color="warning" sx={{ ml:'auto' }} onClick={openReviewDialog}>Enviar a Revisión</Button>
+            </>
+          )}
         </Box>
       </Card>
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
@@ -115,6 +169,42 @@ export const ExpedienteDetailPage = () => {
           <Button onClick={() => setConfirmOpen(false)} disabled={deleting}>Cancelar</Button>
           <Button color="error" onClick={handleDelete} disabled={deleting}>
             {deleting ? 'Eliminando...' : 'Eliminar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={reviewOpen} onClose={() => !sending && setReviewOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Enviar a Revisión</DialogTitle>
+        <DialogContent>
+          {reviewLoading ? (
+            <Box display="flex" alignItems="center" gap={2} py={2}>
+              <CircularProgress size={24} />
+              <Typography variant="body2">Cargando resumen...</Typography>
+            </Box>
+          ) : reviewError ? (
+            <Alert severity="error" sx={{ mb:2 }}>{reviewError}</Alert>
+          ) : (
+            <Box display="flex" flexDirection="column" gap={1} py={1}>
+              <Typography variant="body2"><strong>Código Caso:</strong> {expediente?.codigo_caso}</Typography>
+              <Typography variant="body2"><strong>Nombre Caso:</strong> {expediente?.nombre_caso}</Typography>
+              <Typography variant="body2"><strong>Fiscalía:</strong> {expediente?.nombre_fiscalia || expediente?.id_fiscalia}</Typography>
+              <Typography variant="body2"><strong>Estado Actual:</strong> {expediente?.estado_revision_dicri}</Typography>
+              <Typography variant="body2"><strong>Escenas Registradas:</strong> {scenesCount}</Typography>
+              <Typography variant="body2"><strong>Indicios Registrados:</strong> {indiciosCount}</Typography>
+              <Typography variant="caption" color="text.secondary">
+                Al enviar a revisión no podrá editar el expediente hasta que sea aprobado o rechazado.
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setReviewOpen(false)} disabled={sending || reviewLoading}>Cancelar</Button>
+          <Button
+            variant="contained"
+            color="warning"
+            onClick={sendToReview}
+            disabled={sending || reviewLoading || !!reviewError}
+          >
+            {sending ? 'Enviando...' : 'Enviar a Revisión'}
           </Button>
         </DialogActions>
       </Dialog>

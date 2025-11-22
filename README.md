@@ -375,3 +375,47 @@ Ministerio Público de Guatemala - Todos los derechos reservados © 2025
 
 Para consultas o soporte técnico, contactar a:
 - Email: siamp@mp.gob.gt
+
+### Indicios dentro de Expediente
+
+```
+POST   /api/expedientes/{id_investigacion}/indicios
+GET    /api/expedientes/{id_investigacion}/indicios
+```
+
+Crear indicio (request):
+```json
+{
+  "codigo_indicio": "IND-001-2025",
+  "id_escena": 1,
+  "id_tipo_indicio": 1,
+  "descripcion_corta": "Arma de fuego calibre 9mm",
+  "ubicacion_especifica": "Sala principal, junto a la ventana",
+  "fecha_hora_recoleccion": "2025-11-20T14:30:00Z"
+}
+```
+
+Respuesta (201):
+```json
+{
+  "success": true,
+  "message": "Indicio creado exitosamente",
+  "data": {
+    "id_indicio": 3,
+    "codigo_indicio": "IND-001-2025",
+    "descripcion_corta": "Arma de fuego calibre 9mm",
+    "ubicacion_especifica": "Sala principal, junto a la ventana",
+    "fecha_hora_recoleccion": "2025-11-20T14:30:00.000Z",
+    "estado_actual": "RECOLECTADO",
+    "activo": true,
+    "tipo_indicio": "Arma de Fuego",
+    "nombre_escena": "Lugar del Crimen",
+    "direccion_escena": "Avenida Reforma, Edificio X",
+    "codigo_caso": "MP001-2025-1001",
+    "nombre_caso": "Homicidio en Zona 10",
+    "nombre_fiscalia": "Fiscalía de Delitos contra la Vida",
+    "recolector_nombre": "Administrador",
+    "recolector_apellido": "Sistema"
+  }
+}
+```

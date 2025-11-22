@@ -36,6 +36,16 @@ class IndicioRepository implements IIndicioRepository {
     const res = await httpClient.delete<ApiResponse<void>>(`${this.baseUrl}/${id}`);
     return res.data;
   }
+
+  async createForExpediente(expedienteId: number, data: CreateIndicioRequest): Promise<ApiResponse<Indicio>> {
+    const res = await httpClient.post<ApiResponse<Indicio>>(`/expedientes/${expedienteId}/indicios`, data);
+    return res.data;
+  }
+
+  async getByExpediente(expedienteId: number): Promise<ApiResponse<Indicio[]>> {
+    const res = await httpClient.get<ApiResponse<Indicio[]>>(`/expedientes/${expedienteId}/indicios`);
+    return res.data;
+  }
 }
 
 export const indicioRepository = new IndicioRepository();
