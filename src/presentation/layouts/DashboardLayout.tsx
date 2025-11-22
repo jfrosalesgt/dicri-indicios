@@ -71,16 +71,20 @@ export const DashboardLayout = () => {
 
   const renderMenuItem = (modulo: Module) => {
     const IconComponent = getIconComponent(modulo.icono);
-    
+    const resolveRoute = (ruta: string) => {
+      if (ruta.startsWith('/dashboard')) return ruta;
+      if (ruta.startsWith('/')) return `/dashboard${ruta}`;
+      return `/dashboard/${ruta}`;
+    };
     return (
-      <ListItemButton 
-        key={modulo.id_modulo} 
+      <ListItemButton
+        key={modulo.id_modulo}
         onClick={() => {
-          navigate(modulo.ruta);
+          navigate(resolveRoute(modulo.ruta));
           if (isMobile) setIsSidebarOpen(false);
         }}
       >
-        <ListItemIcon sx={{ color:'inherit' }}>
+        <ListItemIcon sx={{ color: 'inherit' }}>
           <IconComponent />
         </ListItemIcon>
         <ListItemText primary={modulo.nombre_modulo} />

@@ -7,6 +7,16 @@ import { DashboardHome } from './presentation/pages/DashboardHome';
 import { ChangePasswordPage } from './presentation/pages/ChangePasswordPage';
 import { Box, Typography } from '@mui/material';
 import './App.css';
+import { ExpedientesListPage } from './presentation/pages/ExpedientesListPage';
+import { ExpedienteCreatePage } from './presentation/pages/ExpedienteCreatePage';
+import { ExpedienteDetailPage } from './presentation/pages/ExpedienteDetailPage';
+import { ExpedienteEditPage } from './presentation/pages/ExpedienteEditPage';
+import { FiscaliasListPage } from './presentation/pages/FiscaliasListPage';
+import { FiscaliaDetailPage } from './presentation/pages/FiscaliaDetailPage';
+import { FiscaliaCreatePage } from './presentation/pages/FiscaliaCreatePage';
+import { TiposIndicioListPage } from './presentation/pages/TiposIndicioListPage';
+import { TipoIndicioDetailPage } from './presentation/pages/TipoIndicioDetailPage';
+import { TipoIndicioCreatePage } from './presentation/pages/TipoIndicioCreatePage';
 
 function App() {
   return (
@@ -20,7 +30,26 @@ function App() {
               <Route index element={<DashboardHome />} />
               
               {/* Rutas del sistema DICRI */}
-              <Route path="expedientes" element={<PlaceholderPage title="Gestión de Expedientes" />} />
+              <Route path="expedientes">
+                <Route index element={<ExpedientesListPage />} />
+                <Route path="new" element={<ExpedienteCreatePage />} />
+                <Route path=":id" element={<ExpedienteDetailPage />} />
+                <Route path=":id/edit" element={<ExpedienteEditPage />} />  {/* Nuevo */}
+              </Route>
+              <Route path="fiscalias">
+                <Route index element={<FiscaliasListPage />} />
+                <Route path="new" element={<FiscaliaCreatePage />} />
+                <Route path=":id" element={<FiscaliaDetailPage />} />
+              </Route>
+              <Route path="tipos-indicio">
+                <Route index element={<TiposIndicioListPage />} />
+                <Route path="new" element={<TipoIndicioCreatePage />} />
+                <Route path=":id" element={<TipoIndicioDetailPage />} />
+              </Route>
+              {/* Investigaciones */}
+              <Route path="investigaciones" element={<PlaceholderPage title="Investigaciones (Implementar vistas similares)" />} />
+              {/* Indicios */}
+              <Route path="indicios" element={<PlaceholderPage title="Indicios (Implementar vistas similares)" />} />
               <Route path="revision" element={<PlaceholderPage title="Revisión de Expedientes" />} />
               <Route path="reportes" element={<PlaceholderPage title="Informes y Estadísticas" />} />
               <Route path="admin/*" element={<PlaceholderPage title="Administración" />} />
@@ -30,6 +59,7 @@ function App() {
           </Route>
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/expedientes/*" element={<Navigate to="/dashboard/expedientes" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </AuthProvider>

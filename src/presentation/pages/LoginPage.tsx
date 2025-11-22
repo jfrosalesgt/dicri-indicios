@@ -10,7 +10,7 @@ export const LoginPage = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, modulos } = useAuth();
   const navigate = useNavigate();
 
   const theme = useTheme();
@@ -22,7 +22,9 @@ export const LoginPage = () => {
     setIsLoading(true);
     try {
       await login({ nombre_usuario: nombreUsuario, clave });
-      navigate('/');
+// Decide destino: si tiene módulo expedientes
+      const hasExpedientes = modulos.some(m => m.ruta === '/expedientes' || m.ruta.endsWith('/expedientes'));
+      navigate(hasExpedientes ? '/dashboard/expedientes' : '/dashboard');
     } catch (err: any) {
       setError(err?.message || 'Error al iniciar sesión');
     } finally {

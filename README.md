@@ -195,6 +195,104 @@ Authorization: Bearer {token}
 - `PUT /api/users/{id}` - Actualizar usuario
 - `DELETE /api/users/{id}` - Eliminar usuario
 
+## 📂 Endpoints Expedientes (ABC)
+
+```
+GET    /api/expedientes
+GET    /api/expedientes/{id}
+POST   /api/expedientes
+PUT    /api/expedientes/{id}
+DELETE /api/expedientes/{id}
+```
+
+Estados válidos (estado_revision_dicri):
+- EN_REGISTRO
+- PENDIENTE_REVISION
+- APROBADO
+- RECHAZADO
+
+### Crear Expediente
+Request body:
+```json
+{
+  "codigo_caso": "MP001-2025-1005",
+  "nombre_caso": "Homicidio en Zona 11",
+  "fecha_inicio": "2025-11-20",
+  "id_fiscalia": 1,
+  "descripcion_hechos": "Investigación sobre el hallazgo de un cuerpo con herida de bala"
+}
+```
+
+Respuesta (201):
+```json
+{
+  "success": true,
+  "message": "Expediente creado exitosamente",
+  "data": {
+    "id_investigacion": 9,
+    "codigo_caso": "MP001-2025-1005",
+    "nombre_caso": "Homicidio en Zona 11",
+    "fecha_inicio": "2025-11-20T00:00:00.000Z",
+    "id_fiscalia": 1,
+    "descripcion_hechos": "Investigación sobre el hallazgo de un cuerpo con herida de bala",
+    "estado_revision_dicri": "EN_REGISTRO",
+    "id_usuario_registro": 1,
+    "id_usuario_revision": null,
+    "justificacion_revision": null,
+    "fecha_revision": null,
+    "activo": true,
+    "usuario_creacion": "admin",
+    "fecha_creacion": "2025-11-22T21:38:19.943Z",
+    "usuario_actualizacion": null,
+    "fecha_actualizacion": null
+  }
+}
+```
+
+### Actualizar Expediente
+Request (PUT /api/expedientes/{id}):
+```json
+{
+  "nombre_caso": "Homicidio en Zona 11",
+  "fecha_inicio": "2025-11-20",
+  "id_fiscalia": 1,
+  "descripcion_hechos": "Descripción ajustada",
+  "estado_revision_dicri": "PENDIENTE_REVISION",
+  "activo": true
+}
+```
+
+Respuesta (200):
+```json
+{
+  "success": true,
+  "message": "Expediente actualizado exitosamente",
+  "data": null
+}
+```
+
+> Nota: El backend actualmente no implementa paginación; el método paged simulado retorna todos en una sola página.
+
+## 📂 Catálogos
+
+Fiscalías:
+```
+GET    /api/fiscalias
+GET    /api/fiscalias/{id}
+POST   /api/fiscalias
+PUT    /api/fiscalias/{id}
+DELETE /api/fiscalias/{id}
+```
+
+Tipos de Indicio:
+```
+GET    /api/tipos-indicio
+GET    /api/tipos-indicio/{id}
+POST   /api/tipos-indicio
+PUT    /api/tipos-indicio/{id}
+DELETE /api/tipos-indicio/{id}
+```
+
 ## 🎨 Características de la UI
 
 ### Login Page

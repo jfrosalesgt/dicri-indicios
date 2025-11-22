@@ -17,15 +17,32 @@ interface AuthState {
   error?: string;
 }
 
+const cachedUser: User | null = (() => {
+  try {
+    const raw = localStorage.getItem('dicri_auth_user');
+    return raw ? JSON.parse(raw) as User : null;
+  } catch {
+    return null;
+  }
+})();
+
+const cachedModulos: Module[] = (() => {
+  try {
+    const raw = localStorage.getItem('dicri_auth_modulos');
+    return raw ? JSON.parse(raw) as Module[] : [];
+  } catch {
+    return [];
+  }
+})();
+
 const initialState: AuthState = {
-  isAuthenticated: false,
-  // Mantener loading en true al inicio para evitar redirección antes de verificación
+  isAuthenticated: !!cachedUser && httpClient.isAuthenticated(),
   isLoading: true,
-  user: null,
+  user: cachedUser,
   perfiles: [],
   roles: [],
-  modulos: [],
-  needsPasswordChange: false,
+  modulos: cachedModulos,
+  needsPasswordChange: cachedUser ? cachedUser.cambiar_clave : false,
   error: undefined,
 };
 
@@ -71,6 +88,8 @@ const authSlice = createSlice({
       state.modulos = [];
       state.needsPasswordChange = false;
       state.error = undefined;
+      localStorage.removeItem('dicri_auth_user');
+      localStorage.removeItem('dicri_auth_modulos');
     },
   },
   extraReducers: (builder) => {
@@ -102,6 +121,8 @@ const authSlice = createSlice({
         state.roles = action.payload.roles;
         state.modulos = action.payload.modulos;
         state.needsPasswordChange = action.payload.usuario.cambiar_clave;
+        localStorage.setItem('dicri_auth_user', JSON.stringify(action.payload.usuario));
+        localStorage.setItem('dicri_auth_modulos', JSON.stringify(action.payload.modulos));
       })
       .addCase(loginAsync.rejected, (state, action) => {
         state.isLoading = false;
