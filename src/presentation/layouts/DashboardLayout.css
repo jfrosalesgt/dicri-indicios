@@ -1,0 +1,32 @@
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  /* Residual styles kept minimal after MUI migration */
+  /* Custom scrollbar for main area (optional) */
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Main area scrollbar (if class retained) */
+.dashboard-main::-webkit-scrollbar { width: 8px; }
+.dashboard-main::-webkit-scrollbar-track { background: #e9ecef; }
+.dashboard-main::-webkit-scrollbar-thumb { background: #adb5bd; border-radius: 4px; }
+.dashboard-main::-webkit-scrollbar-thumb:hover { background: #868e96; }
+
+@media (max-width: 968px) {
+  /* Drawer handled by MUI; adjust padding in main if needed */
+  .dashboard-main { padding: 16px; }
+}

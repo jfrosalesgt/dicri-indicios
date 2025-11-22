@@ -1,0 +1,91 @@
+import { createContext, useContext, useEffect, type ReactNode } from 'react';
+import type { LoginCredentials, ChangePasswordRequest } from '../../domain/entities/Auth';
+import type { User, Perfil, Role } from '../../domain/entities/User';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginAsync, verifyTokenAsync, logout, changePasswordAsync } from '../store/authSlice';
+import type { RootState, AppDispatch } from '../store/store';
+
+interface AuthContextType {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  user: User | null;
+  perfiles: Perfil[];
+  roles: Role[];
+  login: (credentials: LoginCredentials) => Promise<void>;
+  logout: () => void;
+  verifyToken: () => Promise<boolean>;
+  needsPasswordChange: boolean;
+  changePassword: (data: ChangePasswordRequest) => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const {
+    isAuthenticated,
+    isLoading,
+    user,
+    perfiles,
+    roles,
+    needsPasswordChange,
+  } = useSelector((state: RootState) => state.auth);
+
+  const verifyToken = async (): Promise<boolean> => {
+    try {
+      const result = await dispatch(verifyTokenAsync());
+      return result.type.endsWith('fulfilled');
+    } catch {
+      return false;
+    }
+  };
+
+  const login = async (credentials: LoginCredentials): Promise<void> => {
+    const result = await dispatch(loginAsync(credentials));
+    if (result.type.endsWith('rejected')) {
+      throw new Error((result as any).error?.message || 'Login failed');
+    }
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+  };
+
+  const changePassword = async (data: ChangePasswordRequest): Promise<void> => {
+    const result = await dispatch(changePasswordAsync(data));
+    if (result.type.endsWith('rejected')) {
+      throw new Error((result as any).error?.message || 'Error al cambiar contraseña');
+    }
+  };
+
+  useEffect(() => {
+    dispatch(verifyTokenAsync());
+  }, [dispatch]);
+
+  const value: AuthContextType = {
+    isAuthenticated,
+    isLoading,
+    user,
+    perfiles,
+    roles,
+    login,
+    logout: handleLogout,
+    verifyToken,
+    needsPasswordChange,
+    changePassword,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
