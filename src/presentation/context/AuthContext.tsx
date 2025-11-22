@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import type { LoginCredentials, ChangePasswordRequest } from '../../domain/entities/Auth';
 import type { User, Perfil, Role } from '../../domain/entities/User';
+import type { Module } from '../../domain/entities/Module';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginAsync, verifyTokenAsync, logout, changePasswordAsync } from '../store/authSlice';
 import type { RootState, AppDispatch } from '../store/store';
@@ -11,11 +12,13 @@ interface AuthContextType {
   user: User | null;
   perfiles: Perfil[];
   roles: Role[];
+  modulos: Module[];
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
   verifyToken: () => Promise<boolean>;
   needsPasswordChange: boolean;
   changePassword: (data: ChangePasswordRequest) => Promise<void>;
+  hasModule: (routePath: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,6 +43,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     perfiles,
     roles,
+    modulos,
     needsPasswordChange,
   } = useSelector((state: RootState) => state.auth);
 
@@ -70,6 +74,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const hasModule = (routePath: string): boolean => {
+    return modulos.some(modulo => modulo.ruta === routePath && modulo.activo);
+  };
+
   useEffect(() => {
     dispatch(verifyTokenAsync());
   }, [dispatch]);
@@ -80,11 +88,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     perfiles,
     roles,
+    modulos,
     login,
     logout: handleLogout,
     verifyToken,
     needsPasswordChange,
     changePassword,
+    hasModule,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

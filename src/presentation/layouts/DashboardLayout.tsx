@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './DashboardLayout.css';
@@ -14,37 +14,27 @@ import {
   ListItemText,
   Box,
   Button,
-  Collapse,
   Container,
   useMediaQuery,
   useTheme,
+  Divider,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  Home as HomeIcon,
-  Group as GroupIcon,
-  Description as DescriptionIcon,
-  Security as SecurityIcon,
-  Newspaper as NewspaperIcon,
-  Info as InfoIcon,
-  Business as BusinessIcon,
-  ContactPhone as ContactPhoneIcon,
   AccountCircle as AccountCircleIcon,
   LockReset as LockResetIcon,
-  ExpandLess,
-  ExpandMore,
 } from '@mui/icons-material';
+import { getIconComponent } from '../utils/iconMapper';
+import type { Module } from '../../domain/entities/Module';
 
 const drawerWidth = 260;
 
 export const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isNoticiasOpen, setIsNoticiasOpen] = useState(false);
-  const [isInfoPublicaOpen, setIsInfoPublicaOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
-  const { user, logout } = useAuth();
+  const { user, logout, modulos } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -56,7 +46,21 @@ export const DashboardLayout = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  // Estado inicial: abierto en desktop, cerrado en mobile
+  // Ordenar y filtrar módulos activos, eliminando duplicados
+  const sortedModulos = useMemo(() => {
+    // Eliminar duplicados por ruta
+    const uniqueModulos = modulos.reduce((acc, modulo) => {
+      if (!acc.find(m => m.ruta === modulo.ruta && m.nombre_modulo === modulo.nombre_modulo)) {
+        acc.push(modulo);
+      }
+      return acc;
+    }, [] as Module[]);
+
+    return uniqueModulos
+      .filter(m => m.activo && m.id_modulo_padre === null)
+      .sort((a, b) => a.orden - b.orden);
+  }, [modulos]);
+
   useEffect(() => {
     if (isMobile) {
       setIsSidebarOpen(false);
@@ -64,6 +68,49 @@ export const DashboardLayout = () => {
       setIsSidebarOpen(true);
     }
   }, [isMobile]);
+
+  const renderMenuItem = (modulo: Module) => {
+    const IconComponent = getIconComponent(modulo.icono);
+    
+    return (
+      <ListItemButton 
+        key={modulo.id_modulo} 
+        onClick={() => {
+          navigate(modulo.ruta);
+          if (isMobile) setIsSidebarOpen(false);
+        }}
+      >
+        <ListItemIcon sx={{ color:'inherit' }}>
+          <IconComponent />
+        </ListItemIcon>
+        <ListItemText primary={modulo.nombre_modulo} />
+      </ListItemButton>
+    );
+  };
+
+  const drawerContent = (
+    <>
+      <Toolbar />
+      <Box sx={{ overflow:'auto' }}>
+        <List>
+          {sortedModulos.map(modulo => renderMenuItem(modulo))}
+          
+          <Divider sx={{ my:1, background:'rgba(255,255,255,0.2)', mx:2 }} />
+          
+          <ListItemButton onClick={() => {
+            navigate('/dashboard/change-password');
+            if (isMobile) setIsSidebarOpen(false);
+          }}>
+            <ListItemIcon sx={{ color:'inherit' }}>
+              <LockResetIcon />
+            </ListItemIcon>
+            <ListItemText primary="Cambiar Contraseña" />
+          </ListItemButton>
+        </List>
+      </Box>
+    </>
+  );
+
   return (
     <Box display="flex" height="100vh" overflow="hidden">
       <AppBar
@@ -91,94 +138,21 @@ export const DashboardLayout = () => {
       </AppBar>
 
       {isMobile ? (
-        isSidebarOpen && (
-          <Drawer
-            variant="temporary"
-            open={isSidebarOpen}
-            onClose={() => setIsSidebarOpen(false)}
-            sx={{
-              '& .MuiDrawer-paper': {
-                width: drawerWidth,
-                boxSizing: 'border-box',
-                background: 'linear-gradient(180deg, #1a2b4a 0%, #2c4875 100%)',
-                color: '#fff',
-              },
-            }}
-          >
-            <Toolbar />
-            <Box sx={{ overflow:'auto' }}>
-              <List>
-                <ListItemButton onClick={() => navigate('/dashboard')}>
-                  <ListItemIcon sx={{ color:'inherit' }}><HomeIcon /></ListItemIcon>
-                  <ListItemText primary="Inicio" />
-                </ListItemButton>
-                <ListItemButton onClick={() => navigate('/dashboard/nosotros')}>
-                  <ListItemIcon sx={{ color:'inherit' }}><GroupIcon /></ListItemIcon>
-                  <ListItemText primary="Nosotros" />
-                </ListItemButton>
-                <ListItemButton onClick={() => navigate('/dashboard/certificaciones')}>
-                  <ListItemIcon sx={{ color:'inherit' }}><DescriptionIcon /></ListItemIcon>
-                  <ListItemText primary="Certificaciones" />
-                </ListItemButton>
-                <ListItemButton onClick={() => navigate('/dashboard/delito-cero')}>
-                  <ListItemIcon sx={{ color:'inherit' }}><SecurityIcon /></ListItemIcon>
-                  <ListItemText primary="Delito Cero" />
-                </ListItemButton>
-                <ListItemButton onClick={() => setIsNoticiasOpen(!isNoticiasOpen)}>
-                  <ListItemIcon sx={{ color:'inherit' }}><NewspaperIcon /></ListItemIcon>
-                  <ListItemText primary="Noticias" />
-                  {isNoticiasOpen ? <ExpandLess /> : <ExpandMore />}
-                </ListItemButton>
-                <Collapse in={isNoticiasOpen} timeout="auto" unmountOnExit>
-                  <List component="div" disablePadding>
-                    <ListItemButton sx={{ pl:6 }} onClick={() => navigate('/dashboard/noticias/mp')}>
-                      <ListItemText primary="MP Noticias" />
-                    </ListItemButton>
-                    <ListItemButton sx={{ pl:6 }} onClick={() => navigate('/dashboard/noticias/news')}>
-                      <ListItemText primary="MP News" />
-                    </ListItemButton>
-                  </List>
-                </Collapse>
-                <ListItemButton onClick={() => navigate('/dashboard/documentos')}>
-                  <ListItemIcon sx={{ color:'inherit' }}><DescriptionIcon /></ListItemIcon>
-                  <ListItemText primary="Documentos" />
-                </ListItemButton>
-                <ListItemButton onClick={() => setIsInfoPublicaOpen(!isInfoPublicaOpen)}>
-                  <ListItemIcon sx={{ color:'inherit' }}><InfoIcon /></ListItemIcon>
-                  <ListItemText primary="Información Pública" />
-                  {isInfoPublicaOpen ? <ExpandLess /> : <ExpandMore />}
-                </ListItemButton>
-                <Collapse in={isInfoPublicaOpen} timeout="auto" unmountOnExit>
-                  <List component="div" disablePadding>
-                    <ListItemButton sx={{ pl:6 }} onClick={() => navigate('/dashboard/info-publica/transparencia')}>
-                      <ListItemText primary="Transparencia" />
-                    </ListItemButton>
-                    <ListItemButton sx={{ pl:6 }} onClick={() => navigate('/dashboard/info-publica/rendicion')}>
-                      <ListItemText primary="Rendición de Cuentas" />
-                    </ListItemButton>
-                  </List>
-                </Collapse>
-                <ListItemButton onClick={() => navigate('/dashboard/torre-tres')}>
-                  <ListItemIcon sx={{ color:'inherit' }}><BusinessIcon /></ListItemIcon>
-                  <ListItemText primary="Torre Tres" />
-                </ListItemButton>
-                <ListItemButton onClick={() => navigate('/dashboard/contacto')}>
-                  <ListItemIcon sx={{ color:'inherit' }}><ContactPhoneIcon /></ListItemIcon>
-                  <ListItemText primary="Contacto" />
-                </ListItemButton>
-                <Box sx={{ my:1, height:1, background:'rgba(255,255,255,0.2)', mx:2 }} />
-                <ListItemButton onClick={() => navigate('/dashboard/users')}>
-                  <ListItemIcon sx={{ color:'inherit' }}><AccountCircleIcon /></ListItemIcon>
-                  <ListItemText primary="Usuarios" />
-                </ListItemButton>
-                <ListItemButton onClick={() => navigate('/dashboard/change-password')}>
-                  <ListItemIcon sx={{ color:'inherit' }}><LockResetIcon /></ListItemIcon>
-                  <ListItemText primary="Cambiar Contraseña" />
-                </ListItemButton>
-              </List>
-            </Box>
-          </Drawer>
-        )
+        <Drawer
+          variant="temporary"
+          open={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          sx={{
+            '& .MuiDrawer-paper': {
+              width: drawerWidth,
+              boxSizing: 'border-box',
+              background: 'linear-gradient(180deg, #1a2b4a 0%, #2c4875 100%)',
+              color: '#fff',
+            },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
       ) : (
         <Drawer
           variant="persistent"
@@ -197,80 +171,10 @@ export const DashboardLayout = () => {
             },
           }}
         >
-          <Toolbar />
-          <Box sx={{ overflow:'auto' }}>
-            <List>
-              <ListItemButton onClick={() => navigate('/dashboard')}>
-                <ListItemIcon sx={{ color:'inherit' }}><HomeIcon /></ListItemIcon>
-                <ListItemText primary="Inicio" />
-              </ListItemButton>
-              <ListItemButton onClick={() => navigate('/dashboard/nosotros')}>
-                <ListItemIcon sx={{ color:'inherit' }}><GroupIcon /></ListItemIcon>
-                <ListItemText primary="Nosotros" />
-              </ListItemButton>
-              <ListItemButton onClick={() => navigate('/dashboard/certificaciones')}>
-                <ListItemIcon sx={{ color:'inherit' }}><DescriptionIcon /></ListItemIcon>
-                <ListItemText primary="Certificaciones" />
-              </ListItemButton>
-              <ListItemButton onClick={() => navigate('/dashboard/delito-cero')}>
-                <ListItemIcon sx={{ color:'inherit' }}><SecurityIcon /></ListItemIcon>
-                <ListItemText primary="Delito Cero" />
-              </ListItemButton>
-              <ListItemButton onClick={() => setIsNoticiasOpen(!isNoticiasOpen)}>
-                <ListItemIcon sx={{ color:'inherit' }}><NewspaperIcon /></ListItemIcon>
-                <ListItemText primary="Noticias" />
-                {isNoticiasOpen ? <ExpandLess /> : <ExpandMore />}
-              </ListItemButton>
-              <Collapse in={isNoticiasOpen} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
-                  <ListItemButton sx={{ pl:6 }} onClick={() => navigate('/dashboard/noticias/mp')}>
-                    <ListItemText primary="MP Noticias" />
-                  </ListItemButton>
-                  <ListItemButton sx={{ pl:6 }} onClick={() => navigate('/dashboard/noticias/news')}>
-                    <ListItemText primary="MP News" />
-                  </ListItemButton>
-                </List>
-              </Collapse>
-              <ListItemButton onClick={() => navigate('/dashboard/documentos')}>
-                <ListItemIcon sx={{ color:'inherit' }}><DescriptionIcon /></ListItemIcon>
-                <ListItemText primary="Documentos" />
-              </ListItemButton>
-              <ListItemButton onClick={() => setIsInfoPublicaOpen(!isInfoPublicaOpen)}>
-                <ListItemIcon sx={{ color:'inherit' }}><InfoIcon /></ListItemIcon>
-                <ListItemText primary="Información Pública" />
-                {isInfoPublicaOpen ? <ExpandLess /> : <ExpandMore />}
-              </ListItemButton>
-              <Collapse in={isInfoPublicaOpen} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
-                  <ListItemButton sx={{ pl:6 }} onClick={() => navigate('/dashboard/info-publica/transparencia')}>
-                    <ListItemText primary="Transparencia" />
-                  </ListItemButton>
-                  <ListItemButton sx={{ pl:6 }} onClick={() => navigate('/dashboard/info-publica/rendicion')}>
-                    <ListItemText primary="Rendición de Cuentas" />
-                  </ListItemButton>
-                </List>
-              </Collapse>
-              <ListItemButton onClick={() => navigate('/dashboard/torre-tres')}>
-                <ListItemIcon sx={{ color:'inherit' }}><BusinessIcon /></ListItemIcon>
-                <ListItemText primary="Torre Tres" />
-              </ListItemButton>
-              <ListItemButton onClick={() => navigate('/dashboard/contacto')}>
-                <ListItemIcon sx={{ color:'inherit' }}><ContactPhoneIcon /></ListItemIcon>
-                <ListItemText primary="Contacto" />
-              </ListItemButton>
-              <Box sx={{ my:1, height:1, background:'rgba(255,255,255,0.2)', mx:2 }} />
-              <ListItemButton onClick={() => navigate('/dashboard/users')}>
-                <ListItemIcon sx={{ color:'inherit' }}><AccountCircleIcon /></ListItemIcon>
-                <ListItemText primary="Usuarios" />
-              </ListItemButton>
-              <ListItemButton onClick={() => navigate('/dashboard/change-password')}>
-                <ListItemIcon sx={{ color:'inherit' }}><LockResetIcon /></ListItemIcon>
-                <ListItemText primary="Cambiar Contraseña" />
-              </ListItemButton>
-            </List>
-          </Box>
+          {drawerContent}
         </Drawer>
       )}
+      
       <Box
         component="main"
         flexGrow={1}

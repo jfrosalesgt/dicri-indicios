@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { LoginCredentials, ChangePasswordRequest } from '../../domain/entities/Auth';
 import type { User, Perfil, Role } from '../../domain/entities/User';
+import type { Module } from '../../domain/entities/Module';
 import { authRepository } from '../../infrastructure/repositories/AuthRepository';
 import { httpClient } from '../../infrastructure/http/HttpClient';
 
@@ -11,6 +12,7 @@ interface AuthState {
   user: User | null;
   perfiles: Perfil[];
   roles: Role[];
+  modulos: Module[];
   needsPasswordChange: boolean;
   error?: string;
 }
@@ -22,6 +24,7 @@ const initialState: AuthState = {
   user: null,
   perfiles: [],
   roles: [],
+  modulos: [],
   needsPasswordChange: false,
   error: undefined,
 };
@@ -65,6 +68,7 @@ const authSlice = createSlice({
       state.user = null;
       state.perfiles = [];
       state.roles = [];
+      state.modulos = [];
       state.needsPasswordChange = false;
       state.error = undefined;
     },
@@ -96,6 +100,7 @@ const authSlice = createSlice({
         state.user = action.payload.usuario;
         state.perfiles = action.payload.perfiles;
         state.roles = action.payload.roles;
+        state.modulos = action.payload.modulos;
         state.needsPasswordChange = action.payload.usuario.cambiar_clave;
       })
       .addCase(loginAsync.rejected, (state, action) => {
@@ -109,6 +114,10 @@ const authSlice = createSlice({
       })
       .addCase(changePasswordAsync.fulfilled, (state) => {
         state.isLoading = false;
+        if (state.user) {
+          state.user.cambiar_clave = false;
+          state.needsPasswordChange = false;
+        }
       })
       .addCase(changePasswordAsync.rejected, (state, action) => {
         state.isLoading = false;
