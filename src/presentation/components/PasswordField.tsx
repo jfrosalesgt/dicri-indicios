@@ -1,38 +1,50 @@
 import { useState } from 'react';
-import { TextField, IconButton, InputAdornment } from '@mui/material';
+import { TextField, InputAdornment, IconButton } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 interface PasswordFieldProps {
   label: string;
   value: string;
-  onChange: (value: string) => void;
-  name?: string;
-  required?: boolean;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
-  errorText?: string;
   autoComplete?: string;
+  error?: boolean;
+  helperText?: string;
 }
 
-export const PasswordField = ({ label, value, onChange, name, required, disabled, errorText, autoComplete }: PasswordFieldProps) => {
-  const [show, setShow] = useState(false);
+export const PasswordField = ({
+  label,
+  value,
+  onChange,
+  disabled = false,
+  autoComplete = 'current-password',
+  error = false,
+  helperText,
+}: PasswordFieldProps) => {
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
     <TextField
-      fullWidth
-      type={show ? 'text' : 'password'}
       label={label}
-      name={name}
+      type={showPassword ? 'text' : 'password'}
       value={value}
-      required={required}
+      onChange={onChange}
       disabled={disabled}
-      onChange={(e) => onChange(e.target.value)}
       autoComplete={autoComplete}
-      error={Boolean(errorText)}
-      helperText={errorText}
+      error={error}
+      helperText={helperText}
+      fullWidth
       InputProps={{
         endAdornment: (
           <InputAdornment position="end">
-            <IconButton edge="end" onClick={() => setShow(s => !s)} aria-label={show ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
-              {show ? <VisibilityOff /> : <Visibility />}
+            <IconButton
+              onClick={() => setShowPassword(!showPassword)}
+              onMouseDown={(e) => e.preventDefault()}
+              edge="end"
+              disabled={disabled}
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            >
+              {showPassword ? <VisibilityOff /> : <Visibility />}
             </IconButton>
           </InputAdornment>
         ),

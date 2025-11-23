@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Box, Card, Typography, TextField, Button, Alert, Grid } from '@mui/material';
+import { Box, Card, Typography, TextField, Button, Alert, Grid, MenuItem } from '@mui/material';
 import { escenaRepository } from '../../infrastructure/repositories/EscenaRepository';
 import type { Escena } from '../../domain/entities/Escena';
 

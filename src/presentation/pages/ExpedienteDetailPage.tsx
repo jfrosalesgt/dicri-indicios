@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Card, Typography, Chip, Button, Alert, Grid, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Snackbar, TextField } from '@mui/material';
 import { expedienteRepository } from '../../infrastructure/repositories/ExpedienteRepository';
@@ -6,6 +7,10 @@ import type { Expediente } from '../../domain/entities/Expediente';
 import { escenaRepository } from '../../infrastructure/repositories/EscenaRepository';
 import { indicioRepository } from '../../infrastructure/repositories/IndicioRepository';
 import { useAuth } from '../context/AuthContext';
+
+interface RejectFormData {
+  justificacion: string;
+}
 
 export const ExpedienteDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -30,13 +35,20 @@ export const ExpedienteDetailPage = () => {
   const [sentNotifyOpen, setSentNotifyOpen] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectLoading, setRejectLoading] = useState(false);
-  const [rejectJust, setRejectJust] = useState('');
-  const [rejecting, setRejecting] = useState(false);
   const [rejectError, setRejectError] = useState('');
+  const [rejecting, setRejecting] = useState(false);
   const [approveOpen, setApproveOpen] = useState(false);
   const [approveLoading, setApproveLoading] = useState(false);
   const [approving, setApproving] = useState(false);
   const minReject = 10;
+
+  // ✅ React Hook Form para el formulario de rechazo
+  const { control: rejectControl, handleSubmit: handleRejectSubmit, formState: { errors: rejectErrors, isValid: rejectIsValid }, reset: resetReject } = useForm<RejectFormData>({
+    mode: 'onChange',
+    defaultValues: {
+      justificacion: '',
+    },
+  });
 
   useEffect(() => {
     const load = async () => {
@@ -168,6 +180,7 @@ export const ExpedienteDetailPage = () => {
 
   const openRejectDialog = async () => {
     if (!expediente) return;
+    resetReject(); // ✅ Limpiar formulario
     setRejectOpen(true);
     setRejectLoading(true);
     setRejectError('');
@@ -187,22 +200,25 @@ export const ExpedienteDetailPage = () => {
     }
   };
 
-  const confirmReject = async () => {
+  const onSubmitReject = async (data: RejectFormData) => {
     if (!expediente) return;
-    if (rejectJust.trim().length < minReject) return;
+    
     setRejecting(true);
     setRejectError('');
     try {
-      const res = await expedienteRepository.rechazar(expediente.id_investigacion, { justificacion: rejectJust.trim() });
+      const res = await expedienteRepository.rechazar(expediente.id_investigacion, { 
+        justificacion: data.justificacion.trim() 
+      });
       if (!res.success) throw new Error(res.message || 'Error al rechazar');
+      
       setExpediente({
         ...expediente,
         estado_revision_dicri: 'RECHAZADO',
-        justificacion_revision: rejectJust.trim()
+        justificacion_revision: data.justificacion.trim()
       });
       setRejectOpen(false);
       setSentNotifyOpen(true);
-      setRejectJust('');
+      resetReject(); // ✅ Limpiar formulario
     } catch(e:any) {
       setRejectError(e.message || 'Error al rechazar');
     } finally {
@@ -378,53 +394,76 @@ export const ExpedienteDetailPage = () => {
       </Dialog>
       <Dialog open={rejectOpen} onClose={() => !rejecting && setRejectOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Rechazar Expediente</DialogTitle>
-        <DialogContent>
-          {rejectLoading ? (
-            <Box display="flex" alignItems="center" gap={2} py={2}>
-              <CircularProgress size={24} />
-              <Typography variant="body2">Cargando resumen...</Typography>
-            </Box>
-          ) : rejectError ? (
-            <Alert severity="error" sx={{ mb:2 }}>{rejectError}</Alert>
-          ) : (
-            <Box display="flex" flexDirection="column" gap={1} py={1}>
-              <Typography variant="body2"><strong>Código Caso:</strong> {expediente?.codigo_caso}</Typography>
-              <Typography variant="body2"><strong>Nombre Caso:</strong> {expediente?.nombre_caso}</Typography>
-              <Typography variant="body2"><strong>Escenas Registradas:</strong> {scenesCount}</Typography>
-              <Typography variant="body2"><strong>Indicios Registrados:</strong> {indiciosCount}</Typography>
-              <Typography variant="caption" color="text.secondary">
-                Al rechazar el expediente quedará en estado RECHAZADO para correcciones del técnico.
-              </Typography>
-            </Box>
-          )}
-          <Box mt={2}>
-            <TextField
-              label="Justificación del Rechazo"
-              value={rejectJust}
-              onChange={e=>setRejectJust(e.target.value)}
-              fullWidth
-              multiline
-              minRows={3}
-              disabled={rejectLoading || rejecting}
-              error={rejectJust.trim().length > 0 && rejectJust.trim().length < minReject}
-              helperText={rejectJust.trim().length > 0 && rejectJust.trim().length < minReject
-                ? `Debe tener al menos ${minReject} caracteres`
-                : ' '}
-              placeholder="Describa claramente los motivos del rechazo..."
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setRejectOpen(false)} disabled={rejecting || rejectLoading}>Cancelar</Button>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={confirmReject}
-            disabled={rejecting || rejectLoading || rejectJust.trim().length < minReject || !!rejectError}
-          >
-            {rejecting ? 'Rechazando...' : 'Confirmar Rechazo'}
-          </Button>
-        </DialogActions>
+        <Box component="form" onSubmit={handleRejectSubmit(onSubmitReject)}>
+          <DialogContent>
+            {rejectLoading ? (
+              <Box display="flex" alignItems="center" gap={2} py={2}>
+                <CircularProgress size={24} />
+                <Typography variant="body2">Cargando resumen...</Typography>
+              </Box>
+            ) : rejectError ? (
+              <Alert severity="error" sx={{ mb:2 }}>{rejectError}</Alert>
+            ) : (
+              <Box display="flex" flexDirection="column" gap={2}>
+                <Box display="flex" flexDirection="column" gap={1}>
+                  <Typography variant="body2"><strong>Código Caso:</strong> {expediente?.codigo_caso}</Typography>
+                  <Typography variant="body2"><strong>Nombre Caso:</strong> {expediente?.nombre_caso}</Typography>
+                  <Typography variant="body2"><strong>Escenas Registradas:</strong> {scenesCount}</Typography>
+                  <Typography variant="body2"><strong>Indicios Registrados:</strong> {indiciosCount}</Typography>
+                </Box>
+
+                <Controller
+                  name="justificacion"
+                  control={rejectControl}
+                  rules={{ 
+                    required: 'Justificación es requerida',
+                    minLength: { 
+                      value: minReject, 
+                      message: `Debe tener al menos ${minReject} caracteres` 
+                    }
+                  }}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Justificación del Rechazo"
+                      fullWidth
+                      multiline
+                      minRows={4}
+                      disabled={rejecting}
+                      error={!!rejectErrors.justificacion}
+                      helperText={rejectErrors.justificacion?.message}
+                      placeholder="Describa claramente los motivos del rechazo..."
+                    />
+                  )}
+                />
+
+                <Alert severity="info">
+                  Al rechazar el expediente quedará en estado RECHAZADO para correcciones del técnico.
+                </Alert>
+              </Box>
+            )}
+          </DialogContent>
+          
+          <DialogActions>
+            <Button 
+              onClick={() => {
+                setRejectOpen(false);
+                resetReject();
+              }} 
+              disabled={rejecting || rejectLoading}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              color="error"
+              disabled={rejecting || rejectLoading || !rejectIsValid || !!rejectError}
+            >
+              {rejecting ? 'Rechazando...' : 'Confirmar Rechazo'}
+            </Button>
+          </DialogActions>
+        </Box>
       </Dialog>
       <Dialog open={approveOpen} onClose={() => !approving && setApproveOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Confirmar Aprobación</DialogTitle>

@@ -1,24 +1,39 @@
 import { useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Card, Typography, TextField, Button, Alert, Grid } from '@mui/material';
 import { escenaRepository } from '../../infrastructure/repositories/EscenaRepository';
+
+interface FormData {
+  nombre: string;
+  direccion: string;
+  inicio: string;
+  fin: string;
+  descripcion: string;
+}
 
 export const SceneCreatePage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const fromRevision = (location.state as any)?.fromRevision === true;
-  
-  const [nombre, setNombre] = useState('');
-  const [direccion, setDireccion] = useState('');
-  const [inicio, setInicio] = useState('');
-  const [fin, setFin] = useState('');
-  const [descripcion, setDescripcion] = useState('');
+
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // ✅ React Hook Form
+  const { control, handleSubmit, formState: { errors, isValid } } = useForm<FormData>({
+    mode: 'onChange',
+    defaultValues: {
+      nombre: '',
+      direccion: '',
+      inicio: '',
+      fin: '',
+      descripcion: '',
+    },
+  });
+
+  const onSubmit = async (data: FormData) => {
     if (!id) return;
     setError('');
     setSaving(true);
@@ -26,11 +41,11 @@ export const SceneCreatePage = () => {
     try {
       const res = await escenaRepository.createForExpediente(Number(id), {
         id_investigacion: Number(id),
-        nombre_escena: nombre.trim(),
-        direccion_escena: direccion.trim() || undefined,
-        fecha_hora_inicio: inicio,
-        fecha_hora_fin: fin || null,
-        descripcion: descripcion.trim() || undefined
+        nombre_escena: data.nombre.trim(),
+        direccion_escena: data.direccion.trim() || undefined,
+        fecha_hora_inicio: data.inicio,
+        fecha_hora_fin: data.fin || null,
+        descripcion: data.descripcion.trim() || undefined
       });
 
       if (!res.success || !res.data) throw new Error(res.message || 'Error');
@@ -62,71 +77,103 @@ export const SceneCreatePage = () => {
       </Box>
 
       <Card sx={{ p: 3, borderRadius: 3 }}>
-        <Box component="form" onSubmit={submit} display="flex" flexDirection="column" gap={3}>
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} display="flex" flexDirection="column" gap={3}>
           {error && <Alert severity="error">{error}</Alert>}
 
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <TextField
-                label="Nombre Escena"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                required
-                disabled={saving}
-                fullWidth
+              <Controller
+                name="nombre"
+                control={control}
+                rules={{ 
+                  required: 'Nombre es requerido',
+                  minLength: { value: 3, message: 'Mínimo 3 caracteres' }
+                }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Nombre Escena"
+                    error={!!errors.nombre}
+                    helperText={errors.nombre?.message}
+                    disabled={saving}
+                    fullWidth
+                  />
+                )}
               />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <TextField
-                label="Dirección"
-                value={direccion}
-                onChange={(e) => setDireccion(e.target.value)}
-                disabled={saving}
-                fullWidth
+              <Controller
+                name="direccion"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Dirección"
+                    disabled={saving}
+                    fullWidth
+                  />
+                )}
               />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <TextField
-                label="Fecha/Hora Inicio"
-                type="datetime-local"
-                value={inicio}
-                onChange={(e) => setInicio(e.target.value)}
-                required
-                InputLabelProps={{ shrink: true }}
-                disabled={saving}
-                fullWidth
+              <Controller
+                name="inicio"
+                control={control}
+                rules={{ required: 'Fecha/Hora inicio es requerida' }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Fecha/Hora Inicio"
+                    type="datetime-local"
+                    error={!!errors.inicio}
+                    helperText={errors.inicio?.message}
+                    InputLabelProps={{ shrink: true }}
+                    disabled={saving}
+                    fullWidth
+                  />
+                )}
               />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <TextField
-                label="Fecha/Hora Fin"
-                type="datetime-local"
-                value={fin}
-                onChange={(e) => setFin(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                disabled={saving}
-                fullWidth
+              <Controller
+                name="fin"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Fecha/Hora Fin"
+                    type="datetime-local"
+                    InputLabelProps={{ shrink: true }}
+                    disabled={saving}
+                    fullWidth
+                  />
+                )}
               />
             </Grid>
 
             <Grid item xs={12}>
-              <TextField
-                label="Descripción"
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
-                multiline
-                minRows={3}
-                disabled={saving}
-                fullWidth
+              <Controller
+                name="descripcion"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Descripción"
+                    multiline
+                    minRows={3}
+                    disabled={saving}
+                    fullWidth
+                  />
+                )}
               />
             </Grid>
           </Grid>
 
           <Box display="flex" gap={2} flexWrap="wrap">
-            <Button type="submit" variant="contained" disabled={saving || !nombre.trim() || !inicio}>
+            <Button type="submit" variant="contained" disabled={saving || !isValid}>
               {saving ? 'Guardando...' : 'Guardar'}
             </Button>
             <Button
