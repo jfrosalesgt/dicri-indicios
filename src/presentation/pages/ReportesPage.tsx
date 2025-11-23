@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Box, Card, Typography, Grid, TextField, MenuItem, Button, Chip, Alert } from '@mui/material';
 import { reportesRepository } from '../../infrastructure/repositories/ReportesRepository';
@@ -64,7 +64,6 @@ export const ReportesPage = () => {
 
   const fechaInicio = watch('fechaInicio');
   const fechaFin = watch('fechaFin');
-  const estado = watch('estado');
 
   // ✅ Cargar estadísticas generales
   const loadStats = async () => {
@@ -293,7 +292,7 @@ export const ReportesPage = () => {
                 PENDIENTE_REVISION: '#ed6c02',
                 EN_REGISTRO: '#1565c0'
               };
-              const iconByState: Record<string, JSX.Element> = {
+              const iconByState: Record<string, React.ReactNode> = {
                 APROBADO: <CheckCircleIcon fontSize="small" />,
                 RECHAZADO: <CancelIcon fontSize="small" />,
                 PENDIENTE_REVISION: <HourglassBottomIcon fontSize="small" />,
