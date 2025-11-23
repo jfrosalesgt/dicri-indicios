@@ -18,24 +18,32 @@ export const LoginPage = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    
+    // Prevenir múltiples submissions
+    if (isLoading) return;
+    
     setError('');
     setIsLoading(true);
+    
     try {
       await login({ nombre_usuario: nombreUsuario, clave });
       
-      // Verificar si necesita cambiar contraseña
-      const userData = modulos.length > 0; // Si hay módulos, el login fue exitoso
+      // Pequeño delay para asegurar que el estado se actualice
+      await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Redirigir según el caso
-      if (userData) {
-        const hasExpedientes = modulos.some(m => m.ruta === '/expedientes' || m.ruta.includes('/expedientes'));
-        navigate(hasExpedientes ? '/dashboard/expedientes' : '/dashboard');
-      }
+      // Verificar si tiene módulo de expedientes
+      const hasExpedientes = modulos.some(m => 
+        m.ruta === '/expedientes' || 
+        m.ruta === '/dashboard/expedientes' || 
+        m.ruta.includes('/expedientes')
+      );
+      
+      navigate(hasExpedientes ? '/dashboard/expedientes' : '/dashboard', { replace: true });
     } catch (err: any) {
       setError(err?.message || 'Error al iniciar sesión');
-    } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Solo resetear isLoading si hay error
     }
+    // No reseteamos isLoading en el finally para evitar que se habilite el botón antes de la navegación
   };
 
   return (
@@ -63,14 +71,39 @@ export const LoginPage = () => {
                 <Typography variant="body2" color="text.secondary">Ingrese para continuar.</Typography>
               </Box>
               <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={2.4}>
-                <TextField label="CUI" variant="outlined" value={nombreUsuario} onChange={(e) => setNombreUsuario(e.target.value)} disabled={isLoading} required fullWidth />
-                <TextField label="Contraseña" type="password" variant="outlined" value={clave} onChange={(e) => setClave(e.target.value)} disabled={isLoading} required fullWidth />
+                <TextField 
+                  label="CUI" 
+                  variant="outlined" 
+                  value={nombreUsuario} 
+                  onChange={(e) => setNombreUsuario(e.target.value)} 
+                  disabled={isLoading} 
+                  required 
+                  fullWidth 
+                  autoComplete="username"
+                />
+                <TextField 
+                  label="Contraseña" 
+                  type="password" 
+                  variant="outlined" 
+                  value={clave} 
+                  onChange={(e) => setClave(e.target.value)} 
+                  disabled={isLoading} 
+                  required 
+                  fullWidth 
+                  autoComplete="current-password"
+                />
                 {error && (
                   <Typography variant="body2" color="error" sx={{ bgcolor:'#f8d7da', p:1.5, borderRadius:1 }}>
                     {error}
                   </Typography>
                 )}
-                <Button type="submit" variant="contained" color="secondary" disabled={isLoading} sx={{ py:1.2, fontWeight:600, letterSpacing:0.5 }}>
+                <Button 
+                  type="submit" 
+                  variant="contained" 
+                  color="secondary" 
+                  disabled={isLoading || !nombreUsuario.trim() || !clave.trim()} 
+                  sx={{ py:1.2, fontWeight:600, letterSpacing:0.5 }}
+                >
                   {isLoading ? 'INGRESANDO...' : 'INGRESAR'}
                 </Button>
                 <Box display="flex" justifyContent="space-between" fontSize={13} flexWrap="wrap" gap={1}>
