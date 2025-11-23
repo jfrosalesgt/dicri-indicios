@@ -22,32 +22,45 @@ const loadPersistedState = (): Partial<AuthState> => {
     const token = localStorage.getItem('dicri_auth_token');
     const userStr = localStorage.getItem('dicri_auth_user');
     const modulosStr = localStorage.getItem('dicri_auth_modulos');
+    const perfilesStr = localStorage.getItem('dicri_auth_perfiles');
+    const rolesStr = localStorage.getItem('dicri_auth_roles');
     
     if (!token || !userStr) {
       return {
         isAuthenticated: false,
+        isLoading: false, // ✅ No loading si no hay datos
         user: null,
         token: null,
         modulos: [],
+        perfiles: [],
+        roles: [],
       };
     }
 
     const user = JSON.parse(userStr) as User;
     const modulos = modulosStr ? JSON.parse(modulosStr) as Module[] : [];
+    const perfiles = perfilesStr ? JSON.parse(perfilesStr) as Perfil[] : [];
+    const roles = rolesStr ? JSON.parse(rolesStr) as Role[] : [];
 
     return {
-      isAuthenticated: true,
+      isAuthenticated: true, // ✅ Ya está autenticado desde caché
+      isLoading: false, // ✅ No necesita loading
       user,
       token,
       modulos,
+      perfiles,
+      roles,
       needsPasswordChange: user.cambiar_clave || false,
     };
   } catch {
     return {
       isAuthenticated: false,
+      isLoading: false,
       user: null,
       token: null,
       modulos: [],
+      perfiles: [],
+      roles: [],
     };
   }
 };
@@ -56,11 +69,11 @@ const persistedState = loadPersistedState();
 
 const initialState: AuthState = {
   isAuthenticated: persistedState.isAuthenticated ?? false,
-  isLoading: false,
+  isLoading: persistedState.isLoading ?? false, // ✅ Usar el loading del estado persistido
   user: persistedState.user ?? null,
   token: persistedState.token ?? null,
-  perfiles: [],
-  roles: [],
+  perfiles: persistedState.perfiles ?? [],
+  roles: persistedState.roles ?? [],
   modulos: persistedState.modulos ?? [],
   needsPasswordChange: persistedState.needsPasswordChange ?? false,
   error: null,
@@ -130,10 +143,12 @@ const authSlice = createSlice({
       state.modulos = [];
       state.needsPasswordChange = false;
       state.error = null;
-      // ✅ Limpiar localStorage
+      // ✅ Limpiar TODO el localStorage relacionado
       localStorage.removeItem('dicri_auth_token');
       localStorage.removeItem('dicri_auth_user');
       localStorage.removeItem('dicri_auth_modulos');
+      localStorage.removeItem('dicri_auth_perfiles');
+      localStorage.removeItem('dicri_auth_roles');
     },
     clearError: (state) => {
       state.error = null;
@@ -156,10 +171,12 @@ const authSlice = createSlice({
       const userData = action.payload.usuario || action.payload.user;
       state.needsPasswordChange = userData?.cambiar_clave || false;
       
-      // ✅ Persistir en localStorage
+      // ✅ Persistir TODO en localStorage
       localStorage.setItem('dicri_auth_token', action.payload.token);
       localStorage.setItem('dicri_auth_user', JSON.stringify(state.user));
       localStorage.setItem('dicri_auth_modulos', JSON.stringify(state.modulos));
+      localStorage.setItem('dicri_auth_perfiles', JSON.stringify(state.perfiles));
+      localStorage.setItem('dicri_auth_roles', JSON.stringify(state.roles));
     });
     builder.addCase(loginAsync.rejected, (state, action) => {
       state.isLoading = false;
@@ -173,10 +190,10 @@ const authSlice = createSlice({
     builder.addCase(verifyTokenAsync.fulfilled, (state, action) => {
       state.isLoading = false;
       state.isAuthenticated = true;
-      // El verify devuelve AuthUser, necesitamos obtener el User completo
+      // ✅ Mantener los datos del caché, solo actualizar si es necesario
       const existingUser = state.user;
       if (existingUser) {
-        state.user = existingUser; // Mantener el user existente
+        state.user = existingUser;
       }
     });
     builder.addCase(verifyTokenAsync.rejected, (state) => {
@@ -185,9 +202,13 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.modulos = [];
+      state.perfiles = [];
+      state.roles = [];
       localStorage.removeItem('dicri_auth_token');
       localStorage.removeItem('dicri_auth_user');
       localStorage.removeItem('dicri_auth_modulos');
+      localStorage.removeItem('dicri_auth_perfiles');
+      localStorage.removeItem('dicri_auth_roles');
     });
 
     // Change Password

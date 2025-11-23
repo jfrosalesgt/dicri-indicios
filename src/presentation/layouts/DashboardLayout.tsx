@@ -47,13 +47,6 @@ export const DashboardLayout = () => {
 
   const navigate = useNavigate();
 
-  useEffect(()=>{
-    if (!isLoading) {
-      const token = localStorage.getItem('dicri_auth_token');
-      if (!user && !token) navigate('/login');
-    }
-  }, [user, isLoading, navigate]);
-
   const handleLogout = () => {
     dispatch(logoutAction());
     ctxLogout?.();

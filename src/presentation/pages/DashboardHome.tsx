@@ -28,12 +28,13 @@ export const DashboardHome = () => {
     finally { setLoading(false); }
   };
   useEffect(()=>{ load(); }, []);
-  useEffect(()=>{
-    if (!isLoading) {
-      const token = localStorage.getItem('dicri_auth_token');
-      if (!user && !token) window.location.href='/login';
-    }
-  }, [user, isLoading]);
+  // ❌ REMOVER esta verificación redundante
+  // useEffect(()=>{
+  //   if (!isLoading) {
+  //     const token = localStorage.getItem('dicri_auth_token');
+  //     if (!user && !token) window.location.href='/login';
+  //   }
+  // }, [user, isLoading]);
 
   return (
     <Box className="dashboard-home">

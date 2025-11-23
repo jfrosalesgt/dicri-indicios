@@ -83,11 +83,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   useEffect(() => {
-    // ✅ Solo verificar token si está autenticado
-    if (isAuthenticated) {
+    // ✅ Solo verificar token si hay token pero no está autenticado aún
+    const token = localStorage.getItem('dicri_auth_token');
+    
+    if (token && !isAuthenticated && !user) {
+      // Hay token pero no está cargado en Redux, verificar
       dispatch(verifyTokenAsync());
+    } else if (!token && isAuthenticated) {
+      // No hay token pero Redux dice que está autenticado, logout
+      dispatch(logout());
     }
-  }, [dispatch, isAuthenticated]);
+    // Si ya está autenticado y tiene user, no hacer nada
+  }, []); // ✅ Solo ejecutar una vez al montar
 
   const value: AuthContextType = {
     isAuthenticated,
