@@ -1,152 +1,297 @@
 import { useEffect, useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MenuItem, TextField, Button, Alert, Card, Box, Typography, Grid } from '@mui/material';
 import { expedienteRepository } from '../../infrastructure/repositories/ExpedienteRepository';
 import { fiscaliaRepository } from '../../infrastructure/repositories/FiscaliaRepository';
-import { useAppSelector } from '../../store/store';
 import type { EstadoRevisionDicri, Expediente } from '../../domain/entities/Expediente';
 
 const estados: EstadoRevisionDicri[] = ['EN_REGISTRO','PENDIENTE_REVISION','APROBADO','RECHAZADO'];
 
+interface FormData {
+  nombreCaso: string;
+  fechaInicio: string;
+  idFiscalia: number | '';
+  descripcionHechos: string;
+  activo: boolean;
+}
+
 export const ExpedienteEditPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  
   const [expediente, setExpediente] = useState<Expediente | null>(null);
-  const [nombreCaso, setNombreCaso] = useState('');
-  const [fechaInicio, setFechaInicio] = useState('');
-  const [idFiscalia, setIdFiscalia] = useState<number | ''>('');
-  const [descripcionHechos, setDescripcionHechos] = useState('');
-  const [estadoRev, setEstadoRev] = useState<EstadoRevisionDicri>('EN_REGISTRO');
-  const [activo, setActivo] = useState<boolean>(true);
   const [fiscalias, setFiscalias] = useState<{id_fiscalia:number; nombre_fiscalia:string}[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
 
+  // ✅ React Hook Form
+  const { control, handleSubmit, formState: { errors, isValid }, setValue } = useForm<FormData>({
+    mode: 'onChange',
+    defaultValues: {
+      nombreCaso: '',
+      fechaInicio: '',
+      idFiscalia: '',
+      descripcionHechos: '',
+      activo: true,
+    },
+  });
+
   useEffect(() => {
     const load = async () => {
       if (!id) return;
-      setLoading(true); setError('');
+      setLoading(true); 
+      setError('');
       try {
         const res = await expedienteRepository.getById(Number(id));
         if (res.success && res.data) {
           setExpediente(res.data);
-          setNombreCaso(res.data.nombre_caso);
-          setFechaInicio(res.data.fecha_inicio.slice(0,10));
-          setIdFiscalia(res.data.id_fiscalia);
-          setDescripcionHechos(res.data.descripcion_hechos || '');
-          setEstadoRev(res.data.estado_revision_dicri);
-          setActivo(res.data.activo);
-        } else setError(res.message || 'No encontrado');
-      } catch(e:any){ setError(e.message || 'Error al cargar'); }
-      finally { setLoading(false); }
+          // ✅ Cargar valores en el formulario
+          setValue('nombreCaso', res.data.nombre_caso);
+          setValue('fechaInicio', res.data.fecha_inicio.slice(0,10));
+          setValue('idFiscalia', res.data.id_fiscalia);
+          setValue('descripcionHechos', res.data.descripcion_hechos || '');
+          setValue('activo', res.data.activo);
+        } else {
+          setError(res.message || 'No encontrado');
+        }
+      } catch(e:any){ 
+        setError(e.message || 'Error al cargar'); 
+      } finally { 
+        setLoading(false); 
+      }
     };
     load();
-    fiscaliaRepository.getAll({ activo:true }).then(r=>{
-      if (r.success && r.data) setFiscalias(r.data.map(f=>({id_fiscalia:f.id_fiscalia,nombre_fiscalia:f.nombre_fiscalia})));
-    }).catch(()=>{});
-  }, [id]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    // Cargar fiscalías
+    fiscaliaRepository.getAll({ activo:true }).then(r=>{
+      if (r.success && r.data) {
+        setFiscalias(r.data.map(f=>({
+          id_fiscalia:f.id_fiscalia,
+          nombre_fiscalia:f.nombre_fiscalia
+        })));
+      }
+    }).catch(()=>{});
+  }, [id, setValue]);
+
+  const onSubmit = async (data: FormData) => {
     if (!expediente) return;
-    setSaving(true); setError(''); setDone(false);
+    setSaving(true); 
+    setError(''); 
+    setDone(false);
+
     try {
       const res = await expedienteRepository.update(expediente.id_investigacion, {
-        nombre_caso: nombreCaso.trim(),
-        fecha_inicio: fechaInicio,
-        id_fiscalia: Number(idFiscalia),
-        descripcion_hechos: descripcionHechos.trim() || undefined,
-        estado_revision_dicri: estadoRev,
-        activo,
+        nombre_caso: data.nombreCaso.trim(),
+        fecha_inicio: data.fechaInicio,
+        id_fiscalia: Number(data.idFiscalia),
+        descripcion_hechos: data.descripcionHechos.trim() || undefined,
+        estado_revision_dicri: expediente.estado_revision_dicri, // ✅ Mantener el estado actual
+        activo: data.activo,
       });
-      if (!res.success) throw new Error(res.message || 'Error al actualizar'); // removido uso de res.data
+
+      if (!res.success) throw new Error(res.message || 'Error al actualizar');
+      
       setDone(true);
       navigate(`/dashboard/expedientes/${expediente.id_investigacion}`);
-    } catch(e:any){ setError(e.message || 'Error al actualizar'); }
-    finally { setSaving(false); }
+    } catch(e:any){ 
+      setError(e.message || 'Error al actualizar'); 
+    } finally { 
+      setSaving(false); 
+    }
   };
 
   if (loading) return <Typography>Cargando...</Typography>;
-  if (error || !expediente) return (
+  
+  if (error && !expediente) return (
     <Box>
-      <Alert severity="error" sx={{ mb:2 }}>{error || 'Expediente no encontrado'}</Alert>
+      <Alert severity="error" sx={{ mb:2 }}>{error}</Alert>
       <Button variant="outlined" onClick={() => navigate('/dashboard/expedientes')}>Volver</Button>
     </Box>
   );
 
+  if (!expediente) return null;
+
   return (
     <Box width="100%">
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
-        <Button variant="outlined" onClick={() => navigate('/dashboard/expedientes')}>← Volver</Button>
+        <Button variant="outlined" onClick={() => navigate('/dashboard/expedientes')}>
+          ← Volver
+        </Button>
         <Typography variant="h5" fontWeight={600}>Editar Expediente</Typography>
+        <Box width={80} />
       </Box>
+
       <Card sx={{ p:3, borderRadius:3, width:'100%', boxSizing:'border-box' }}>
-        <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={3}>
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} display="flex" flexDirection="column" gap={3}>
           {/* Alertas */}
           {error && <Alert severity="error">{error}</Alert>}
           {done && <Alert severity="success">Expediente actualizado</Alert>}
-          {/* Grid de campos */}
+
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <TextField label="Código Caso" value={expediente.codigo_caso} disabled fullWidth />
+              <TextField 
+                label="Código Caso" 
+                value={expediente.codigo_caso} 
+                disabled 
+                fullWidth 
+              />
             </Grid>
+
             <Grid item xs={12} md={4}>
-              <TextField label="Nombre Caso" value={nombreCaso} onChange={e=>setNombreCaso(e.target.value)} required disabled={saving} fullWidth />
+              <Controller
+                name="nombreCaso"
+                control={control}
+                rules={{ 
+                  required: 'Nombre es requerido',
+                  minLength: { value: 5, message: 'Mínimo 5 caracteres' }
+                }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Nombre Caso"
+                    error={!!errors.nombreCaso}
+                    helperText={errors.nombreCaso?.message}
+                    disabled={saving}
+                    fullWidth
+                  />
+                )}
+              />
             </Grid>
+
             <Grid item xs={12} md={4}>
-              <TextField label="Fecha Inicio" type="date" value={fechaInicio} onChange={e=>setFechaInicio(e.target.value)} required disabled={saving} InputLabelProps={{ shrink:true }} fullWidth />
+              <Controller
+                name="fechaInicio"
+                control={control}
+                rules={{ required: 'Fecha es requerida' }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Fecha Inicio"
+                    type="date"
+                    error={!!errors.fechaInicio}
+                    helperText={errors.fechaInicio?.message}
+                    disabled={saving}
+                    InputLabelProps={{ shrink:true }}
+                    fullWidth
+                  />
+                )}
+              />
             </Grid>
+
             <Grid item xs={12} md={4}>
-              <TextField select label="Fiscalía" value={idFiscalia} onChange={e=>setIdFiscalia(Number(e.target.value))} required disabled={saving} fullWidth>
-                {fiscalias.map(f=> <MenuItem key={f.id_fiscalia} value={f.id_fiscalia}>{f.nombre_fiscalia}</MenuItem>)}
-              </TextField>
+              <Controller
+                name="idFiscalia"
+                control={control}
+                rules={{ required: 'Fiscalía es requerida' }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    select
+                    label="Fiscalía"
+                    error={!!errors.idFiscalia}
+                    helperText={errors.idFiscalia?.message}
+                    disabled={saving}
+                    fullWidth
+                  >
+                    {fiscalias.map(f=> (
+                      <MenuItem key={f.id_fiscalia} value={f.id_fiscalia}>
+                        {f.nombre_fiscalia}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                )}
+              />
             </Grid>
+
             <Grid item xs={12} md={4}>
               <TextField
                 select
                 label="Estado Revisión"
-                value={estadoRev}
-                onChange={e=>setEstadoRev(e.target.value as EstadoRevisionDicri)}
+                value={expediente.estado_revision_dicri}
                 disabled
                 helperText="Estado bloqueado (flujo controlado por revisión)"
-              >
-                {estados.map(es=> <MenuItem key={es} value={es}>{es}</MenuItem>)}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField select label="Activo" value={activo ? 'true':'false'} onChange={e=>setActivo(e.target.value === 'true')} disabled={saving} fullWidth>
-                <MenuItem value="true">Activo</MenuItem>
-                <MenuItem value="false">Inactivo</MenuItem>
-              </TextField>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Descripción Hechos"
-                value={descripcionHechos}
-                onChange={e=>setDescripcionHechos(e.target.value)}
-                multiline
-                minRows={3}
                 fullWidth
-                disabled={saving}
+              >
+                {estados.map(es=> (
+                  <MenuItem key={es} value={es}>{es}</MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Controller
+                name="activo"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    select
+                    label="Activo"
+                    value={field.value ? 'true' : 'false'}
+                    onChange={(e) => field.onChange(e.target.value === 'true')}
+                    disabled={saving}
+                    fullWidth
+                  >
+                    <MenuItem value="true">Activo</MenuItem>
+                    <MenuItem value="false">Inactivo</MenuItem>
+                  </TextField>
+                )}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Controller
+                name="descripcionHechos"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Descripción Hechos"
+                    multiline
+                    minRows={3}
+                    disabled={saving}
+                    fullWidth
+                  />
+                )}
               />
             </Grid>
           </Grid>
+
           {/* Botones */}
           <Box display="flex" gap={2} flexWrap="wrap" justifyContent="flex-start">
-            <Button type="submit" variant="contained" disabled={saving || !nombreCaso.trim() || !fechaInicio || !idFiscalia}>
+            <Button 
+              type="submit" 
+              variant="contained" 
+              disabled={saving || !isValid}
+            >
               {saving ? 'Guardando...' : 'Guardar Cambios'}
             </Button>
-            <Button variant="text" onClick={() => navigate(`/dashboard/expedientes/${expediente.id_investigacion}`)} disabled={saving}>
+
+            <Button 
+              variant="text" 
+              onClick={() => navigate(`/dashboard/expedientes/${expediente.id_investigacion}`)} 
+              disabled={saving}
+            >
               Cancelar
             </Button>
-            {estadoRev === 'EN_REGISTRO' && (
+
+            {expediente.estado_revision_dicri === 'EN_REGISTRO' && (
               <>
-                <Button variant="outlined" onClick={() => navigate(`/dashboard/expedientes/${expediente.id_investigacion}/escenas`)} disabled={saving}>
+                <Button 
+                  variant="outlined" 
+                  onClick={() => navigate(`/dashboard/expedientes/${expediente.id_investigacion}/escenas`)} 
+                  disabled={saving}
+                >
                   Ver Escenas
                 </Button>
-                <Button variant="outlined" onClick={() => navigate(`/dashboard/expedientes/${expediente.id_investigacion}/indicios`)} disabled={saving}>
+                <Button 
+                  variant="outlined" 
+                  onClick={() => navigate(`/dashboard/expedientes/${expediente.id_investigacion}/indicios`)} 
+                  disabled={saving}
+                >
                   Ver Indicios
                 </Button>
               </>

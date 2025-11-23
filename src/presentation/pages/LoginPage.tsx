@@ -1,13 +1,17 @@
-import { useState, type FormEvent } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './LoginPage.css';
 import { TextField, Button, Card, Typography, Box, Link, Grid, useTheme, useMediaQuery, Container, InputAdornment, IconButton } from '@mui/material';
 import { Visibility, VisibilityOff, LockOutlined, PersonOutline } from '@mui/icons-material';
+import { useState } from 'react';
+
+interface LoginFormData {
+  nombreUsuario: string;
+  clave: string;
+}
 
 export const LoginPage = () => {
-  const [nombreUsuario, setNombreUsuario] = useState('');
-  const [clave, setClave] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -18,18 +22,28 @@ export const LoginPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    
+  // ✅ React Hook Form
+  const { control, handleSubmit, formState: { errors, isValid } } = useForm<LoginFormData>({
+    mode: 'onChange',
+    defaultValues: {
+      nombreUsuario: '',
+      clave: '',
+    },
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
     if (isLoading) return;
     
     setError('');
     setIsLoading(true);
     
     try {
-      await login({ nombre_usuario: nombreUsuario, clave });
+      await login({ 
+        nombre_usuario: data.nombreUsuario, 
+        clave: data.clave 
+      });
       
-      // ✅ Esperar a que Redux Persist guarde (100ms es suficiente)
+      // ✅ Esperar a que Redux Persist guarde
       await new Promise(resolve => setTimeout(resolve, 150));
       
       // ✅ Navegar según módulos disponibles
@@ -43,7 +57,7 @@ export const LoginPage = () => {
     } catch (err: any) {
       setError(err?.message || 'Error al iniciar sesión');
     } finally {
-      setIsLoading(false); // ✅ Asegurar que se desactive el loading
+      setIsLoading(false);
     }
   };
 
@@ -212,69 +226,89 @@ export const LoginPage = () => {
                 </Typography>
               </Box>
 
-              <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={3}>
-                <TextField 
-                  label="Usuario" 
-                  variant="outlined" 
-                  value={nombreUsuario} 
-                  onChange={(e) => setNombreUsuario(e.target.value)} 
-                  disabled={isLoading} 
-                  required 
-                  fullWidth
-                  autoComplete="username"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PersonOutline sx={{ color: '#1a2b4a' }} />
-                      </InputAdornment>
-                    ),
+              <Box component="form" onSubmit={handleSubmit(onSubmit)} display="flex" flexDirection="column" gap={3}>
+                <Controller
+                  name="nombreUsuario"
+                  control={control}
+                  rules={{ 
+                    required: 'Usuario es requerido',
+                    minLength: { value: 3, message: 'Mínimo 3 caracteres' }
                   }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                      '&:hover fieldset': {
-                        borderColor: '#4a9fd8',
-                      },
-                    },
-                  }}
+                  render={({ field }) => (
+                    <TextField 
+                      {...field}
+                      label="Usuario" 
+                      variant="outlined" 
+                      error={!!errors.nombreUsuario}
+                      helperText={errors.nombreUsuario?.message}
+                      disabled={isLoading} 
+                      fullWidth
+                      autoComplete="username"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonOutline sx={{ color: '#1a2b4a' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          '&:hover fieldset': {
+                            borderColor: '#4a9fd8',
+                          },
+                        },
+                      }}
+                    />
+                  )}
                 />
 
-                <TextField 
-                  label="Contraseña" 
-                  type={showPassword ? 'text' : 'password'}
-                  variant="outlined" 
-                  value={clave} 
-                  onChange={(e) => setClave(e.target.value)} 
-                  disabled={isLoading} 
-                  required 
-                  fullWidth
-                  autoComplete="current-password"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LockOutlined sx={{ color: '#1a2b4a' }} />
-                      </InputAdornment>
-                    ),
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                          disabled={isLoading}
-                        >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
+                <Controller
+                  name="clave"
+                  control={control}
+                  rules={{ 
+                    required: 'Contraseña es requerida',
+                    minLength: { value: 4, message: 'Mínimo 4 caracteres' }
                   }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                      '&:hover fieldset': {
-                        borderColor: '#4a9fd8',
-                      },
-                    },
-                  }}
+                  render={({ field }) => (
+                    <TextField 
+                      {...field}
+                      label="Contraseña" 
+                      type={showPassword ? 'text' : 'password'}
+                      variant="outlined" 
+                      error={!!errors.clave}
+                      helperText={errors.clave?.message}
+                      disabled={isLoading} 
+                      fullWidth
+                      autoComplete="current-password"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LockOutlined sx={{ color: '#1a2b4a' }} />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={() => setShowPassword(!showPassword)}
+                              edge="end"
+                              disabled={isLoading}
+                            >
+                              {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          '&:hover fieldset': {
+                            borderColor: '#4a9fd8',
+                          },
+                        },
+                      }}
+                    />
+                  )}
                 />
 
                 {error && (
@@ -296,7 +330,7 @@ export const LoginPage = () => {
                   type="submit" 
                   variant="contained"
                   size="large"
-                  disabled={isLoading || !nombreUsuario.trim() || !clave.trim()}
+                  disabled={isLoading || !isValid}
                   sx={{ 
                     py: 1.8,
                     borderRadius: 2,
