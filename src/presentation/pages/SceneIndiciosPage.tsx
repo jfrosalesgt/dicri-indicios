@@ -3,7 +3,6 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Card, Typography, Chip, Button } from '@mui/material';
 import { indicioRepository } from '../../infrastructure/repositories/IndicioRepository';
 import type { Indicio } from '../../domain/entities/Indicio';
-import { useAuth } from '../context/AuthContext';
 
 export const SceneIndiciosPage = () => {
   const { id, escenaId } = useParams<{ id:string; escenaId:string }>();
@@ -13,7 +12,6 @@ export const SceneIndiciosPage = () => {
   const [items, setItems] = useState<Indicio[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { user, isLoading } = useAuth();
 
   const load = async () => {
     if (!escenaId) return;
@@ -26,12 +24,6 @@ export const SceneIndiciosPage = () => {
   };
 
   useEffect(()=>{ load(); }, [escenaId]);
-  useEffect(()=>{
-    if (!isLoading) {
-      const token = localStorage.getItem('dicri_auth_token');
-      if (!user && !token) navigate('/login');
-    }
-  }, [user, isLoading, navigate]);
 
   return (
     <Box>

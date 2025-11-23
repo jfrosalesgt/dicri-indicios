@@ -5,15 +5,21 @@ import './index.css';
 import { Provider } from 'react-redux';
 import { store, persistor } from './store/store';
 import { PersistGate } from 'redux-persist/integration/react';
-import { ThemeProvider, CssBaseline } from '@mui/material';
+import { ThemeProvider, CssBaseline, Box, CircularProgress } from '@mui/material';
 import { theme } from './presentation/theme/theme';
 
-// ✅ StrictMode solo en desarrollo
+// ✅ Loader para PersistGate
+const PersistLoader = () => (
+  <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+    <CircularProgress />
+  </Box>
+);
+
 const isDev = import.meta.env.DEV;
 
 const app = (
   <Provider store={store}>
-    <PersistGate loading={null} persistor={persistor}>
+    <PersistGate loading={<PersistLoader />} persistor={persistor}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <App />

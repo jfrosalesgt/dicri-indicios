@@ -4,7 +4,6 @@ import { Box, Card, Typography, TextField, Button, Alert, MenuItem, Grid } from 
 import { indicioRepository } from '../../infrastructure/repositories/IndicioRepository';
 import { escenaRepository } from '../../infrastructure/repositories/EscenaRepository';
 import { tipoIndicioRepository } from '../../infrastructure/repositories/TipoIndicioRepository';
-import { useAuth } from '../context/AuthContext';
 
 export const IndicioCreatePage = () => {
   const { id, escenaId } = useParams<{ id: string; escenaId?: string }>();
@@ -22,14 +21,6 @@ export const IndicioCreatePage = () => {
   const [loadingLists, setLoadingLists] = useState(true);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
-  const { user, isLoading } = useAuth();
-
-  useEffect(()=>{
-    if (!isLoading) {
-      const token = localStorage.getItem('dicri_auth_token');
-      if (!user && !token) navigate('/login');
-    }
-  }, [user, isLoading, navigate]);
 
   useEffect(() => {
     const load = async () => {

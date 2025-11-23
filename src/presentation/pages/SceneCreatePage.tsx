@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Card, Typography, TextField, Button, Alert, Grid } from '@mui/material';
 import { escenaRepository } from '../../infrastructure/repositories/EscenaRepository';
-import { useAuth } from '../context/AuthContext';
 
 export const SceneCreatePage = () => {
   const { id } = useParams<{ id:string }>();
@@ -16,14 +15,6 @@ export const SceneCreatePage = () => {
   const [descripcion, setDescripcion] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
-  const { user, isLoading } = useAuth();
-
-  useEffect(()=>{
-    if (!isLoading) {
-      const token = localStorage.getItem('dicri_auth_token');
-      if (!user && !token) navigate('/login');
-    }
-  }, [user, isLoading, navigate]);
 
   const submit = async (e:React.FormEvent) => {
     e.preventDefault();

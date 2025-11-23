@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export const RevisionExpedientesPage = () => {
-  const { roles, user, isLoading } = useAuth();
+  const { roles } = useAuth(); // ✅ Solo necesita roles
   const navigate = useNavigate();
   const canReview = roles?.some(r => r.nombre_role === 'COORDINADOR_DICRI' || r.nombre_role === 'ADMIN');
   const [items, setItems] = useState<Expediente[]>([]);
@@ -28,12 +28,6 @@ export const RevisionExpedientesPage = () => {
   };
 
   useEffect(()=>{ load(); }, []);
-  useEffect(()=>{
-    if (!isLoading) {
-      const token = localStorage.getItem('dicri_auth_token');
-      if (!user && !token) navigate('/login');
-    }
-  }, [user, isLoading, navigate]);
 
   if (!canReview) {
     return (

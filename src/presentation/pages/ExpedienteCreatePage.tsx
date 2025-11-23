@@ -3,10 +3,8 @@ import { Box, Card, Typography, TextField, Button, Alert, MenuItem, Grid } from 
 import { useNavigate } from 'react-router-dom';
 import { expedienteRepository } from '../../infrastructure/repositories/ExpedienteRepository';
 import { fiscaliaRepository } from '../../infrastructure/repositories/FiscaliaRepository';
-import { useAuth } from '../context/AuthContext';
 
 export const ExpedienteCreatePage = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [codigoCaso, setCodigoCaso] = useState('');
   const [nombreCaso, setNombreCaso] = useState('');

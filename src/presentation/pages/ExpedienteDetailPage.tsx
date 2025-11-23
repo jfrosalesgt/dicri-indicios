@@ -12,7 +12,7 @@ export const ExpedienteDetailPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const fromRevision = (location.state as any)?.fromRevision === true;
-  const { roles, isLoading: rolesLoading, user, isLoading } = useAuth();
+  const { roles, isLoading: rolesLoading } = useAuth(); // ✅ Solo necesita roles
   const canReview = roles?.some(r => r.nombre_role === 'COORDINADOR_DICRI' || r.nombre_role === 'ADMIN');
   const canSendReview = roles?.some(r => r.nombre_role === 'TECNICO_DICRI' || r.nombre_role === 'ADMIN');
 
@@ -209,13 +209,6 @@ export const ExpedienteDetailPage = () => {
       setRejecting(false);
     }
   };
-
-  useEffect(()=>{
-    if (!isLoading) {
-      const token = localStorage.getItem('dicri_auth_token');
-      if (!user && !token) navigate('/login');
-    }
-  }, [user, isLoading, navigate]);
 
   if (loading) return <Typography>Cargando...</Typography>;
 

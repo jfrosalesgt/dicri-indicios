@@ -8,7 +8,9 @@ import authReducer from './authSlice';
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth'], // Solo persistimos auth
+  whitelist: ['auth'],
+  // ✅ Reducir timeout de serialize check
+  timeout: 1000,
 };
 
 const rootReducer = combineReducers({
@@ -23,8 +25,16 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+        // ✅ Reducir checks innecesarios
+        warnAfter: 128,
+      },
+      // ✅ Optimizar immutability checks
+      immutableCheck: {
+        warnAfter: 128,
       },
     }),
+  // ✅ Solo DevTools en desarrollo
+  devTools: import.meta.env.DEV,
 });
 
 export const persistor = persistStore(store);

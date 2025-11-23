@@ -29,8 +29,10 @@ export const LoginPage = () => {
     try {
       await login({ nombre_usuario: nombreUsuario, clave });
       
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // ✅ Esperar a que Redux Persist guarde (100ms es suficiente)
+      await new Promise(resolve => setTimeout(resolve, 150));
       
+      // ✅ Navegar según módulos disponibles
       const hasExpedientes = modulos.some(m => 
         m.ruta === '/expedientes' || 
         m.ruta === '/dashboard/expedientes' || 
@@ -40,7 +42,8 @@ export const LoginPage = () => {
       navigate(hasExpedientes ? '/dashboard/expedientes' : '/dashboard', { replace: true });
     } catch (err: any) {
       setError(err?.message || 'Error al iniciar sesión');
-      setIsLoading(false);
+    } finally {
+      setIsLoading(false); // ✅ Asegurar que se desactive el loading
     }
   };
 

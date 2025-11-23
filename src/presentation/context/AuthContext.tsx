@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { LoginCredentials, ChangePasswordRequest } from '../../domain/entities/Auth';
 import type { User, Perfil, Role } from '../../domain/entities/User';
 import type { Module } from '../../domain/entities/Module';
@@ -36,9 +36,11 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const dispatch = useAppDispatch();
+  const [isInitialized, setIsInitialized] = useState(false); // ✅ Nuevo estado
+  
   const {
     isAuthenticated,
-    isLoading,
+    isLoading: stateLoading,
     user,
     perfiles,
     roles,
@@ -46,11 +48,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     needsPasswordChange,
   } = useAppSelector((state) => state.auth);
 
+  // ✅ isLoading debe incluir la inicialización
+  const isLoading = stateLoading || !isInitialized;
+
+  useEffect(() => {
+    // ✅ Verificar si Redux Persist ya cargó el estado
+    const initAuth = async () => {
+      if (isAuthenticated && user && modulos.length > 0) {
+        // Ya hay sesión activa, validar token
+        try {
+          await dispatch(verifyTokenAsync());
+        } catch (error) {
+          console.error('Token inválido:', error);
+        }
+      }
+      setIsInitialized(true);
+    };
+
+    initAuth();
+  }, []); // ✅ Solo ejecutar una vez al montar
+
   const verifyToken = async (): Promise<boolean> => {
-    // ✅ Solo verificar si ya está autenticado
-    if (!isAuthenticated) {
-      return false;
-    }
+    if (!isAuthenticated) return false;
     
     try {
       const result = await dispatch(verifyTokenAsync());
@@ -81,20 +100,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const hasModule = (routePath: string): boolean => {
     return modulos.some(modulo => modulo.ruta === routePath && modulo.activo);
   };
-
-  useEffect(() => {
-    // ✅ Solo verificar token si hay token pero no está autenticado aún
-    const token = localStorage.getItem('dicri_auth_token');
-    
-    if (token && !isAuthenticated && !user) {
-      // Hay token pero no está cargado en Redux, verificar
-      dispatch(verifyTokenAsync());
-    } else if (!token && isAuthenticated) {
-      // No hay token pero Redux dice que está autenticado, logout
-      dispatch(logout());
-    }
-    // Si ya está autenticado y tiene user, no hacer nada
-  }, []); // ✅ Solo ejecutar una vez al montar
 
   const value: AuthContextType = {
     isAuthenticated,

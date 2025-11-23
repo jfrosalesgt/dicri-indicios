@@ -12,7 +12,7 @@ import { useAuth } from '../context/AuthContext';
 export const RevisionExpedienteDetailPage = () => {
   const { id } = useParams<{ id:string }>();
   const navigate = useNavigate();
-  const { roles } = useAuth();
+  const { roles } = useAuth(); // ✅ Solo necesita roles
   const canReview = roles?.some(r => r.nombre_role === 'COORDINADOR_DICRI' || r.nombre_role === 'ADMIN');
 
   const [expediente, setExpediente] = useState<Expediente | null>(null);

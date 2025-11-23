@@ -7,12 +7,12 @@ import type { Expediente, EstadoRevisionDicri } from '../../domain/entities/Expe
 import { expedienteRepository } from '../../infrastructure/repositories/ExpedienteRepository';
 import { fiscaliaRepository } from '../../infrastructure/repositories/FiscaliaRepository';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 
 const estados: EstadoRevisionDicri[] = ['EN_REGISTRO','PENDIENTE_REVISION','APROBADO','RECHAZADO'];
 
 export const ExpedientesListPage = () => {
-  const { user } = useAuth();
+  // ❌ REMOVER si no se usa realmente
+  // const { user } = useAuth();
   const navigate = useNavigate();
   const [items, setItems] = useState<Expediente[]>([]);
   const [loading, setLoading] = useState(false);

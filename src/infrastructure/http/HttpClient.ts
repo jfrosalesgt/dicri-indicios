@@ -1,5 +1,6 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse, type AxiosError } from 'axios';
 import { config } from '../config/config';
+import { store } from '../../store/store'; // ✅ Importar store
 
 export interface HttpClientConfig {
   baseURL?: string;
@@ -9,7 +10,6 @@ export interface HttpClientConfig {
 
 export class HttpClient {
   private client: AxiosInstance;
-  private tokenKey: string = config.tokenKey;
 
   constructor(clientConfig?: HttpClientConfig) {
     this.client = axios.create({
@@ -25,83 +25,29 @@ export class HttpClient {
   }
 
   private setupInterceptors(): void {
-    // Request interceptor - Add token to headers
     this.client.interceptors.request.use(
       (config) => {
-        const token = this.getToken();
+        // ✅ Leer token desde Redux store
+        const token = store.getState().auth.token;
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
       },
-      (error) => {
-        return Promise.reject(error);
-      }
+      (error) => Promise.reject(error)
     );
 
-    // Response interceptor - Handle common errors
     this.client.interceptors.response.use(
       (response) => response,
       (error: AxiosError) => {
-        if (error.response) {
-          // Handle specific HTTP error codes
-          switch (error.response.status) {
-            case 401:
-              // Unauthorized - Clear token and redirect to login
-              this.clearToken();
-              window.location.href = '/login';
-              break;
-            case 403:
-              // Forbidden
-              console.error('Access denied');
-              break;
-            case 404:
-              // Not found
-              console.error('Resource not found');
-              break;
-            case 500:
-              // Server error
-              console.error('Internal server error');
-              break;
-          }
-        } else if (error.request) {
-          // Request made but no response
-          console.error('No response from server');
-        } else {
-          // Error in request setup
-          console.error('Error setting up request:', error.message);
+        if (error.response?.status === 401) {
+          // ✅ Limpiar Redux state
+          store.dispatch({ type: 'auth/logout' });
+          window.location.href = '/login';
         }
         return Promise.reject(error);
       }
     );
-  }
-
-  // Token management
-  public setToken(token: string): void {
-    localStorage.setItem(this.tokenKey, token);
-  }
-
-  public getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
-  }
-
-  public clearToken(): void {
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(config.tokenExpKey);
-  }
-
-  public isAuthenticated(): boolean {
-    const token = this.getToken();
-    if (!token) return false;
-
-    // Check if token is expired
-    const exp = localStorage.getItem(config.tokenExpKey);
-    if (exp) {
-      const expTime = parseInt(exp, 10) * 1000; // Convert to milliseconds
-      return Date.now() < expTime;
-    }
-
-    return !!token;
   }
 
   // HTTP Methods

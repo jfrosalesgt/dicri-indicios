@@ -7,7 +7,6 @@ import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
 import CancelIcon from '@mui/icons-material/Cancel';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import { useAuth } from '../context/AuthContext';
 import { useAppSelector } from '../../store/store';
 
 const estados = ['EN_REGISTRO','PENDIENTE_REVISION','APROBADO','RECHAZADO'];
@@ -28,16 +27,6 @@ export const ReportesPage = () => {
   const [statsLoading, setStatsLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({}); // nuevo estado
-
-  const { user, isLoading } = useAuth();
-  const reduxUser = useAppSelector(s=>s.auth.user);
-
-  useEffect(()=>{
-    if (!isLoading) {
-      const token = localStorage.getItem('dicri_auth_token');
-      if (!user && !token) window.location.href='/login';
-    }
-  }, [user, isLoading]);
 
   const loadStats = async () => {
     setStatsLoading(true); setStatsError('');

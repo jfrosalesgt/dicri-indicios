@@ -16,19 +16,9 @@ export class AuthRepository implements IAuthRepository {
         credentials
       );
 
-      // Mapear 'usuario' a 'user' si es necesario para mantener consistencia
+      // ✅ Solo retornar datos, Redux se encarga de guardar
       if (response.data && response.data.usuario && !response.data.user) {
         response.data.user = response.data.usuario;
-      }
-
-      // Store token and expiration
-      if (response.data.success && response.data.data) {
-        const token = response.data.data.token;
-        httpClient.setToken(token);
-
-        // Decode token to get expiration
-        const decoded: AuthUser = jwtDecode(token);
-        localStorage.setItem(config.tokenExpKey, decoded.exp.toString());
       }
 
       return response.data;
@@ -47,7 +37,6 @@ export class AuthRepository implements IAuthRepository {
   }
 
   logout(): void {
-    httpClient.clearToken();
   }
 
   async changePassword(data: ChangePasswordRequest): Promise<ApiResponse<void>> {

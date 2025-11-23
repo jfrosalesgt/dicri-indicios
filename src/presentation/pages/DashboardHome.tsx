@@ -9,32 +9,31 @@ import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
-import { useAuth } from '../context/AuthContext';
 import { useAppSelector } from '../../store/store';
 
 export const DashboardHome = () => {
   const [stats, setStats] = useState<EstadisticasGenerales | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { user, isLoading } = useAuth();
-  const reduxUser = useAppSelector(s => s.auth.user);
 
   const load = async () => {
-    setLoading(true); setError('');
+    setLoading(true); 
+    setError('');
     try {
       const res = await reportesRepository.getEstadisticasGenerales();
-      if (res.success && res.data) setStats(res.data); else setError(res.message || 'Error al cargar estadísticas');
-    } catch(e:any){ setError(e.message || 'Error al cargar estadísticas'); }
-    finally { setLoading(false); }
+      if (res.success && res.data) setStats(res.data); 
+      else setError(res.message || 'Error al cargar estadísticas');
+    } catch(e:any){ 
+      setError(e.message || 'Error al cargar estadísticas'); 
+    }
+    finally { 
+      setLoading(false); 
+    }
   };
-  useEffect(()=>{ load(); }, []);
-  // ❌ REMOVER esta verificación redundante
-  // useEffect(()=>{
-  //   if (!isLoading) {
-  //     const token = localStorage.getItem('dicri_auth_token');
-  //     if (!user && !token) window.location.href='/login';
-  //   }
-  // }, [user, isLoading]);
+  
+  useEffect(()=>{ 
+    load(); 
+  }, []); // ✅ Solo cargar una vez
 
   return (
     <Box className="dashboard-home">

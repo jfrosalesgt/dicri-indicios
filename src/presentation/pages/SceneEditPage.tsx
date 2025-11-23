@@ -3,7 +3,6 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Card, Typography, TextField, Button, Alert, MenuItem, Grid } from '@mui/material';
 import { escenaRepository } from '../../infrastructure/repositories/EscenaRepository';
 import type { Escena } from '../../domain/entities/Escena';
-import { useAuth } from '../context/AuthContext';
 
 export const SceneEditPage = () => {
   const { id, escenaId } = useParams<{ id:string; escenaId:string }>();
@@ -20,15 +19,6 @@ export const SceneEditPage = () => {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { user, isLoading } = useAuth();
-
-  useEffect(()=>{ if (!isLoading && !user) navigate('/login'); }, [user, isLoading, navigate]);
-  useEffect(()=>{
-    if (!isLoading) {
-      const token = localStorage.getItem('dicri_auth_token');
-      if (!user && !token) navigate('/login');
-    }
-  }, [user, isLoading, navigate]);
 
   useEffect(()=>{
     const load = async () => {
