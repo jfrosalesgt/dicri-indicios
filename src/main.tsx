@@ -7,6 +7,12 @@ import { store, persistor } from './store/store';
 import { PersistGate } from 'redux-persist/integration/react';
 import { ThemeProvider, CssBaseline, Box, CircularProgress } from '@mui/material';
 import { theme } from './presentation/theme/theme';
+import { httpClient } from './infrastructure/http/HttpClient'; // ✅ Importar httpClient
+
+// ✅ Configurar httpClient DESPUÉS de que el store esté disponible
+httpClient.setTokenGetter(() => {
+  return store.getState().auth.token;
+});
 
 // ✅ Loader para PersistGate
 const PersistLoader = () => (

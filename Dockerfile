@@ -42,7 +42,7 @@ RUN npm run build
 FROM nginx:alpine AS production-stage
 
 # Copiamos la configuración de nginx si la tienes (opcional)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copiamos los archivos generados en la etapa 'build-stage'
 COPY --from=build-stage /app/dist /usr/share/nginx/html

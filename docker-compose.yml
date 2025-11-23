@@ -1,51 +1,35 @@
 services:
-  # Development Frontend
+  # Desarrollo con Hot Reload
   frontend-dev:
-    container_name: dicri-frontend-dev
     build:
       context: .
-      dockerfile: Dockerfile
-      # --- CRÍTICO: DETIENE LA CONSTRUCCIÓN EN LA ETAPA DE NODE ---
-      target: dev-stage 
-      # -----------------------------------------------------------
-      args:
-        VITE_API_BASE_URL: http://localhost:3030/api
-    
-    # Mapeo de puertos: Host 8080 -> Contenedor 5173 (Vite)
+      dockerfile: Dockerfile.dev
+    container_name: dicri-frontend-dev
     ports:
       - "8080:5173"
-    
     volumes:
       - .:/app
       - /app/node_modules
-
-    # Comando para iniciar Vite en modo host
-    command: npm run dev -- --host 
-
     environment:
-      - NODE_ENV=development
-    restart: unless-stopped
+      - VITE_API_BASE_URL=http://localhost:3030/api
     networks:
       - dicri-network
+    command: npm run dev -- --host 0.0.0.0
 
-  # Production Frontend
+  # Producción con Nginx
   frontend-prod:
-    container_name: dicri-frontend-prod
     build:
       context: .
       dockerfile: Dockerfile
-      # Aquí NO ponemos target, por lo que llega hasta el final (Nginx)
+      target: production-stage
       args:
         VITE_API_BASE_URL: http://localhost:3030/api
+    container_name: dicri-frontend-prod
     ports:
       - "8081:80"
-    environment:
-      - NODE_ENV=production
-    restart: unless-stopped
     networks:
       - dicri-network
 
-# Configuración de Red Global
 networks:
   dicri-network:
     external: true

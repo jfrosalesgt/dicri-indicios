@@ -1,6 +1,5 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse, type AxiosError } from 'axios';
 import { config } from '../config/config';
-import { store } from '../../store/store'; // ✅ Importar store
 
 export interface HttpClientConfig {
   baseURL?: string;
@@ -10,6 +9,8 @@ export interface HttpClientConfig {
 
 export class HttpClient {
   private client: AxiosInstance;
+  // ✅ Función para obtener token (lazy evaluation)
+  private getToken: (() => string | null) | null = null;
 
   constructor(clientConfig?: HttpClientConfig) {
     this.client = axios.create({
@@ -24,11 +25,16 @@ export class HttpClient {
     this.setupInterceptors();
   }
 
+  // ✅ Método para inyectar el getter del token
+  public setTokenGetter(getter: () => string | null): void {
+    this.getToken = getter;
+  }
+
   private setupInterceptors(): void {
     this.client.interceptors.request.use(
       (config) => {
-        // ✅ Leer token desde Redux store
-        const token = store.getState().auth.token;
+        // ✅ Obtener token solo cuando se necesita
+        const token = this.getToken?.();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -41,8 +47,7 @@ export class HttpClient {
       (response) => response,
       (error: AxiosError) => {
         if (error.response?.status === 401) {
-          // ✅ Limpiar Redux state
-          store.dispatch({ type: 'auth/logout' });
+          // ✅ Solo limpiar en cliente, no tocar Redux aquí
           window.location.href = '/login';
         }
         return Promise.reject(error);
