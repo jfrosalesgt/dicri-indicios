@@ -1,38 +1,51 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import { AuthProvider } from './presentation/context/AuthContext';
 import { ProtectedRoute } from './presentation/routes/ProtectedRoute';
+import { Box, CircularProgress, Typography } from '@mui/material';
+import './App.css';
+
+// ✅ Componentes críticos cargados inmediatamente
 import { LoginPage } from './presentation/pages/LoginPage';
 import { DashboardLayout } from './presentation/layouts/DashboardLayout';
-import { DashboardHome } from './presentation/pages/DashboardHome';
-import { ChangePasswordPage } from './presentation/pages/ChangePasswordPage';
-import { Box, Typography } from '@mui/material';
-import './App.css';
-import { ExpedientesListPage } from './presentation/pages/ExpedientesListPage';
-import { ExpedienteCreatePage } from './presentation/pages/ExpedienteCreatePage';
-import { ExpedienteDetailPage } from './presentation/pages/ExpedienteDetailPage';
-import { ExpedienteEditPage } from './presentation/pages/ExpedienteEditPage';
-import { FiscaliasListPage } from './presentation/pages/FiscaliasListPage';
-import { FiscaliaDetailPage } from './presentation/pages/FiscaliaDetailPage';
-import { FiscaliaCreatePage } from './presentation/pages/FiscaliaCreatePage';
-import { TiposIndicioListPage } from './presentation/pages/TiposIndicioListPage';
-import { TipoIndicioDetailPage } from './presentation/pages/TipoIndicioDetailPage';
-import { TipoIndicioCreatePage } from './presentation/pages/TipoIndicioCreatePage';
-import { RevisionExpedientesPage } from './presentation/pages/RevisionExpedientesPage';
-import { RevisionExpedienteDetailPage } from './presentation/pages/RevisionExpedienteDetailPage';
-import { ReportesPage } from './presentation/pages/ReportesPage';
-import { AdminRoute } from './presentation/routes/AdminRoute';
-import { AdminHomePage } from './presentation/pages/AdminHomePage';
-import { RolesListPage } from './presentation/pages/RolesListPage';
-import { PerfilesListPage } from './presentation/pages/PerfilesListPage';
-import { EscenasListPage } from './presentation/pages/EscenasListPage';
-import { IndiciosListPage } from './presentation/pages/IndiciosListPage';
-import { IndiciosExpedientePage } from './presentation/pages/IndiciosExpedientePage';
-import { IndicioCreatePage } from './presentation/pages/IndicioCreatePage';
-import { IndicioEditPage } from './presentation/pages/IndicioEditPage';
-import { ScenesExpedientePage } from './presentation/pages/ScenesExpedientePage';
-import { SceneCreatePage } from './presentation/pages/SceneCreatePage';
-import { SceneEditPage } from './presentation/pages/SceneEditPage';
-import { SceneIndiciosPage } from './presentation/pages/SceneIndiciosPage';
+
+// ✅ Componentes lazy-loaded (solo cuando se necesitan)
+const DashboardHome = lazy(() => import('./presentation/pages/DashboardHome').then(m => ({ default: m.DashboardHome })));
+const ChangePasswordPage = lazy(() => import('./presentation/pages/ChangePasswordPage').then(m => ({ default: m.ChangePasswordPage })));
+const ExpedientesListPage = lazy(() => import('./presentation/pages/ExpedientesListPage').then(m => ({ default: m.ExpedientesListPage })));
+const ExpedienteCreatePage = lazy(() => import('./presentation/pages/ExpedienteCreatePage').then(m => ({ default: m.ExpedienteCreatePage })));
+const ExpedienteDetailPage = lazy(() => import('./presentation/pages/ExpedienteDetailPage').then(m => ({ default: m.ExpedienteDetailPage })));
+const ExpedienteEditPage = lazy(() => import('./presentation/pages/ExpedienteEditPage').then(m => ({ default: m.ExpedienteEditPage })));
+const FiscaliasListPage = lazy(() => import('./presentation/pages/FiscaliasListPage').then(m => ({ default: m.FiscaliasListPage })));
+const FiscaliaDetailPage = lazy(() => import('./presentation/pages/FiscaliaDetailPage').then(m => ({ default: m.FiscaliaDetailPage })));
+const FiscaliaCreatePage = lazy(() => import('./presentation/pages/FiscaliaCreatePage').then(m => ({ default: m.FiscaliaCreatePage })));
+const TiposIndicioListPage = lazy(() => import('./presentation/pages/TiposIndicioListPage').then(m => ({ default: m.TiposIndicioListPage })));
+const TipoIndicioDetailPage = lazy(() => import('./presentation/pages/TipoIndicioDetailPage').then(m => ({ default: m.TipoIndicioDetailPage })));
+const TipoIndicioCreatePage = lazy(() => import('./presentation/pages/TipoIndicioCreatePage').then(m => ({ default: m.TipoIndicioCreatePage })));
+const RevisionExpedientesPage = lazy(() => import('./presentation/pages/RevisionExpedientesPage').then(m => ({ default: m.RevisionExpedientesPage })));
+const RevisionExpedienteDetailPage = lazy(() => import('./presentation/pages/RevisionExpedienteDetailPage').then(m => ({ default: m.RevisionExpedienteDetailPage })));
+const ReportesPage = lazy(() => import('./presentation/pages/ReportesPage').then(m => ({ default: m.ReportesPage })));
+const AdminRoute = lazy(() => import('./presentation/routes/AdminRoute').then(m => ({ default: m.AdminRoute })));
+const AdminHomePage = lazy(() => import('./presentation/pages/AdminHomePage').then(m => ({ default: m.AdminHomePage })));
+const RolesListPage = lazy(() => import('./presentation/pages/RolesListPage').then(m => ({ default: m.RolesListPage })));
+const PerfilesListPage = lazy(() => import('./presentation/pages/PerfilesListPage').then(m => ({ default: m.PerfilesListPage })));
+const EscenasListPage = lazy(() => import('./presentation/pages/EscenasListPage').then(m => ({ default: m.EscenasListPage })));
+const IndiciosListPage = lazy(() => import('./presentation/pages/IndiciosListPage').then(m => ({ default: m.IndiciosListPage })));
+const IndiciosExpedientePage = lazy(() => import('./presentation/pages/IndiciosExpedientePage').then(m => ({ default: m.IndiciosExpedientePage })));
+const IndicioCreatePage = lazy(() => import('./presentation/pages/IndicioCreatePage').then(m => ({ default: m.IndicioCreatePage })));
+const IndicioEditPage = lazy(() => import('./presentation/pages/IndicioEditPage').then(m => ({ default: m.IndicioEditPage })));
+const ScenesExpedientePage = lazy(() => import('./presentation/pages/ScenesExpedientePage').then(m => ({ default: m.ScenesExpedientePage })));
+const SceneCreatePage = lazy(() => import('./presentation/pages/SceneCreatePage').then(m => ({ default: m.SceneCreatePage })));
+const SceneEditPage = lazy(() => import('./presentation/pages/SceneEditPage').then(m => ({ default: m.SceneEditPage })));
+const SceneIndiciosPage = lazy(() => import('./presentation/pages/SceneIndiciosPage').then(m => ({ default: m.SceneIndiciosPage })));
+
+// ✅ Componente de loading reutilizable
+const PageLoader = () => (
+  <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" minHeight="400px" gap={2}>
+    <CircularProgress size={40} />
+    <Typography variant="body2" color="text.secondary">Cargando...</Typography>
+  </Box>
+);
 
 function App() {
   return (
@@ -43,56 +56,55 @@ function App() {
           
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardLayout />}>
-              <Route index element={<DashboardHome />} />
+              <Route index element={
+                <Suspense fallback={<PageLoader />}>
+                  <DashboardHome />
+                </Suspense>
+              } />
               
               {/* Rutas del sistema DICRI */}
               <Route path="expedientes">
-                <Route index element={<ExpedientesListPage />} />
-                <Route path="new" element={<ExpedienteCreatePage />} />
-                <Route path=":id" element={<ExpedienteDetailPage />} />
-                <Route path=":id/edit" element={<ExpedienteEditPage />} />
+                <Route index element={<Suspense fallback={<PageLoader />}><ExpedientesListPage /></Suspense>} />
+                <Route path="new" element={<Suspense fallback={<PageLoader />}><ExpedienteCreatePage /></Suspense>} />
+                <Route path=":id" element={<Suspense fallback={<PageLoader />}><ExpedienteDetailPage /></Suspense>} />
+                <Route path=":id/edit" element={<Suspense fallback={<PageLoader />}><ExpedienteEditPage /></Suspense>} />
                 <Route path=":id/escenas">
-                  <Route index element={<ScenesExpedientePage />} />
-                  <Route path="new" element={<SceneCreatePage />} />
-                  <Route path=":escenaId/edit" element={<SceneEditPage />} />
-                  <Route path=":escenaId/indicios" element={<SceneIndiciosPage />} />
-                  <Route path=":escenaId/indicios/new" element={<IndicioCreatePage />} /> {/* nuevo: crear indicio desde escena */}
+                  <Route index element={<Suspense fallback={<PageLoader />}><ScenesExpedientePage /></Suspense>} />
+                  <Route path="new" element={<Suspense fallback={<PageLoader />}><SceneCreatePage /></Suspense>} />
+                  <Route path=":escenaId/edit" element={<Suspense fallback={<PageLoader />}><SceneEditPage /></Suspense>} />
+                  <Route path=":escenaId/indicios" element={<Suspense fallback={<PageLoader />}><SceneIndiciosPage /></Suspense>} />
+                  <Route path=":escenaId/indicios/new" element={<Suspense fallback={<PageLoader />}><IndicioCreatePage /></Suspense>} />
                 </Route>
                 <Route path=":id/indicios">
-                  {/* Indicios por expediente ya existentes */}
-                  <Route index element={<IndiciosExpedientePage />} />
-                  <Route path="new" element={<IndicioCreatePage />} />
-                  <Route path=":indicioId/edit" element={<IndicioEditPage />} />
+                  <Route index element={<Suspense fallback={<PageLoader />}><IndiciosExpedientePage /></Suspense>} />
+                  <Route path="new" element={<Suspense fallback={<PageLoader />}><IndicioCreatePage /></Suspense>} />
+                  <Route path=":indicioId/edit" element={<Suspense fallback={<PageLoader />}><IndicioEditPage /></Suspense>} />
                 </Route>
               </Route>
               <Route path="fiscalias">
-                <Route index element={<FiscaliasListPage />} />
-                <Route path="new" element={<FiscaliaCreatePage />} />
-                <Route path=":id" element={<FiscaliaDetailPage />} />
+                <Route index element={<Suspense fallback={<PageLoader />}><FiscaliasListPage /></Suspense>} />
+                <Route path="new" element={<Suspense fallback={<PageLoader />}><FiscaliaCreatePage /></Suspense>} />
+                <Route path=":id" element={<Suspense fallback={<PageLoader />}><FiscaliaDetailPage /></Suspense>} />
               </Route>
               <Route path="tipos-indicio">
-                <Route index element={<TiposIndicioListPage />} />
-                <Route path="new" element={<TipoIndicioCreatePage />} />
-                <Route path=":id" element={<TipoIndicioDetailPage />} />
+                <Route index element={<Suspense fallback={<PageLoader />}><TiposIndicioListPage /></Suspense>} />
+                <Route path="new" element={<Suspense fallback={<PageLoader />}><TipoIndicioCreatePage /></Suspense>} />
+                <Route path=":id" element={<Suspense fallback={<PageLoader />}><TipoIndicioDetailPage /></Suspense>} />
               </Route>
-              {/* Investigaciones */}
-              <Route path="investigaciones" element={<PlaceholderPage title="Investigaciones (Implementar vistas similares)" />} />
-              {/* Indicios */}
-              <Route path="indicios" element={<PlaceholderPage title="Indicios (Implementar vistas similares)" />} />
               <Route path="revision">
-                <Route index element={<RevisionExpedientesPage />} />
-                <Route path=":id" element={<RevisionExpedienteDetailPage />} />
+                <Route index element={<Suspense fallback={<PageLoader />}><RevisionExpedientesPage /></Suspense>} />
+                <Route path=":id" element={<Suspense fallback={<PageLoader />}><RevisionExpedienteDetailPage /></Suspense>} />
               </Route>
-              <Route path="reportes" element={<ReportesPage />} />
-              <Route path="admin" element={<AdminRoute />}>
-                <Route index element={<AdminHomePage />} />
-                <Route path="roles" element={<RolesListPage />} />
-                <Route path="perfiles" element={<PerfilesListPage />} />
-                <Route path="escenas" element={<EscenasListPage />} />
-                <Route path="indicios" element={<IndiciosListPage />} />
+              <Route path="reportes" element={<Suspense fallback={<PageLoader />}><ReportesPage /></Suspense>} />
+              <Route path="admin" element={<Suspense fallback={<PageLoader />}><AdminRoute /></Suspense>}>
+                <Route index element={<Suspense fallback={<PageLoader />}><AdminHomePage /></Suspense>} />
+                <Route path="roles" element={<Suspense fallback={<PageLoader />}><RolesListPage /></Suspense>} />
+                <Route path="perfiles" element={<Suspense fallback={<PageLoader />}><PerfilesListPage /></Suspense>} />
+                <Route path="escenas" element={<Suspense fallback={<PageLoader />}><EscenasListPage /></Suspense>} />
+                <Route path="indicios" element={<Suspense fallback={<PageLoader />}><IndiciosListPage /></Suspense>} />
               </Route>
               
-              <Route path="change-password" element={<ChangePasswordPage />} />
+              <Route path="change-password" element={<Suspense fallback={<PageLoader />}><ChangePasswordPage /></Suspense>} />
             </Route>
           </Route>
 
@@ -104,12 +116,5 @@ function App() {
     </BrowserRouter>
   );
 }
-
-const PlaceholderPage = ({ title }: { title: string }) => (
-  <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight={400} bgcolor="white" borderRadius={3} p={5} boxShadow={3}>
-    <Typography variant="h4" color="primary" mb={2}>{title}</Typography>
-    <Typography variant="body1" color="text.secondary">Esta página estará disponible próximamente.</Typography>
-  </Box>
-);
 
 export default App;

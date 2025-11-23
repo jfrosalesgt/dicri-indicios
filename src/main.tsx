@@ -8,15 +8,20 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { theme } from './presentation/theme/theme';
 
+// ✅ StrictMode solo en desarrollo
+const isDev = import.meta.env.DEV;
+
+const app = (
+  <Provider store={store}>
+    <PersistGate loading={null} persistor={persistor}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <App />
+      </ThemeProvider>
+    </PersistGate>
+  </Provider>
+);
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <App />
-        </ThemeProvider>
-      </PersistGate>
-    </Provider>
-  </React.StrictMode>
+  isDev ? <React.StrictMode>{app}</React.StrictMode> : app
 );
