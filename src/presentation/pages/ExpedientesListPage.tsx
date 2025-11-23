@@ -130,51 +130,65 @@ export const ExpedientesListPage = () => {
                 <th style={{ padding:12, textAlign:'left' }}>ID</th>
                 <th style={{ padding:12, textAlign:'left' }}>Código Caso</th>
                 <th style={{ padding:12, textAlign:'left' }}>Nombre Caso</th>
-                <th style={{ padding:12, textAlign:'left' }}>Estado Revisión</th>
                 <th style={{ padding:12, textAlign:'left' }}>Fiscalía</th>
+                <th style={{ padding:12, textAlign:'left' }}>Estado</th>
                 <th style={{ padding:12, textAlign:'left' }}>Fecha Inicio</th>
                 <th style={{ padding:12, textAlign:'left' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} style={{ padding:20, textAlign:'center' }}>Cargando...</td></tr>
+                <tr><td colSpan={7} style={{ padding:20 }}>Cargando...</td></tr>
               ) : error ? (
                 <tr><td colSpan={7} style={{ padding:20, color:'#b00020' }}>{error}</td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={7} style={{ padding:20, textAlign:'center', fontStyle:'italic' }}>Sin expedientes</td></tr>
-              ) : items.map(exp => (
-                <tr key={exp.id_investigacion} style={{ borderBottom:'1px solid #e0e0e0' }}>
-                  <td style={{ padding:10 }}>{exp.id_investigacion}</td>
-                  <td style={{ padding:10 }}>{exp.codigo_caso}</td>
-                  <td style={{ padding:10, maxWidth:240 }}>{exp.nombre_caso}</td>
-                  <td style={{ padding:10 }}>
-                    <Chip
-                      size="small"
-                      label={exp.estado_revision_dicri}
-                      color={
-                        exp.estado_revision_dicri === 'APROBADO'
-                          ? 'success'
-                          : exp.estado_revision_dicri === 'RECHAZADO'
-                          ? 'error'
-                          : 'warning'
-                      }
-                    />
-                  </td>
-                  <td style={{ padding:10 }}>{exp.nombre_fiscalia || exp.id_fiscalia}</td>
-                  <td style={{ padding:10 }}>{new Date(exp.fecha_inicio).toLocaleDateString('es-GT')}</td>
-                  <td style={{ padding:10 }}>
-                    <Button size="small" variant="outlined" onClick={() => navigate(`/dashboard/expedientes/${exp.id_investigacion}`)}>Ver</Button>{' '}
-                    <Button size="small" variant="text" onClick={() => navigate(`/dashboard/expedientes/${exp.id_investigacion}/edit`)}>Editar</Button>
-                  </td>
-                </tr>
-              ))}
+                <tr><td colSpan={7} style={{ padding:20, fontStyle:'italic' }}>Sin expedientes</td></tr>
+              ) : (
+                items.map(exp => (
+                  <tr key={exp.id_investigacion} style={{ borderBottom:'1px solid #e0e0e0' }}>
+                    <td style={{ padding:10 }}>{exp.id_investigacion}</td>
+                    <td style={{ padding:10 }}>{exp.codigo_caso}</td>
+                    <td style={{ padding:10, maxWidth:240 }}>{exp.nombre_caso}</td>
+                    <td style={{ padding:10 }}>{exp.nombre_fiscalia || exp.id_fiscalia}</td>
+                    <td style={{ padding:10 }}>
+                      <Chip 
+                        size="small" 
+                        label={exp.estado_revision_dicri} 
+                        color={
+                          exp.estado_revision_dicri === 'APROBADO' ? 'success' :
+                          exp.estado_revision_dicri === 'RECHAZADO' ? 'error' :
+                          exp.estado_revision_dicri === 'PENDIENTE_REVISION' ? 'warning' : 'default'
+                        } 
+                      />
+                    </td>
+                    <td style={{ padding:10 }}>{new Date(exp.fecha_inicio).toLocaleDateString('es-GT')}</td>
+                    <td style={{ padding:10 }}>
+                      <Button 
+                        size="small" 
+                        variant="outlined" 
+                        onClick={() => navigate(`/dashboard/expedientes/${exp.id_investigacion}`)}
+                      >
+                        Ver
+                      </Button>
+                      {/* ✅ Mostrar botón Editar solo si está EN_REGISTRO */}
+                      {exp.estado_revision_dicri === 'EN_REGISTRO' && (
+                        <>
+                          {' '}
+                          <Button 
+                            size="small" 
+                            variant="contained" 
+                            onClick={() => navigate(`/dashboard/expedientes/${exp.id_investigacion}/edit`)}
+                          >
+                            Editar
+                          </Button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-        </Box>
-        <Box p={2} display="flex" justifyContent="space-between" fontSize={12} color="text.secondary">
-          <Box>Total: {items.length}</Box>
-          <Box>Usuario actual: {user?.nombre_usuario}</Box>
         </Box>
       </Card>
     </Box>

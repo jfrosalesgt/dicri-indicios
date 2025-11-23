@@ -47,6 +47,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   } = useAppSelector((state) => state.auth);
 
   const verifyToken = async (): Promise<boolean> => {
+    // ✅ Solo verificar si ya está autenticado
+    if (!isAuthenticated) {
+      return false;
+    }
+    
     try {
       const result = await dispatch(verifyTokenAsync());
       return result.type.endsWith('fulfilled');
@@ -78,8 +83,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   useEffect(() => {
-    dispatch(verifyTokenAsync());
-  }, [dispatch]);
+    // ✅ Solo verificar token si está autenticado
+    if (isAuthenticated) {
+      dispatch(verifyTokenAsync());
+    }
+  }, [dispatch, isAuthenticated]);
 
   const value: AuthContextType = {
     isAuthenticated,
