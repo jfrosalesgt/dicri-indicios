@@ -1,26 +1,44 @@
 import { useEffect, useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Card, Typography, TextField, Button, Alert, MenuItem, Grid } from '@mui/material';
 import { indicioRepository } from '../../infrastructure/repositories/IndicioRepository';
 import { escenaRepository } from '../../infrastructure/repositories/EscenaRepository';
 import { tipoIndicioRepository } from '../../infrastructure/repositories/TipoIndicioRepository';
 
+interface FormData {
+  codigo: string;
+  escena: string;
+  tipoIndicio: string;
+  descripcion: string;
+  ubicacion: string;
+  fechaRecoleccion: string;
+}
+
 export const IndicioCreatePage = () => {
   const { id, escenaId } = useParams<{ id: string; escenaId?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const fromRevision = (location.state as any)?.fromRevision === true;
-  const [codigo, setCodigo] = useState('');
-  const [escena, setEscena] = useState('');
-  const [tipoIndicio, setTipoIndicio] = useState('');
-  const [descripcion, setDescripcion] = useState('');
-  const [ubicacion, setUbicacion] = useState('');
-  const [fechaRecoleccion, setFechaRecoleccion] = useState('');
-  const [escenas, setEscenas] = useState<{ id_escena:number; nombre_escena:string }[]>([]);
-  const [tipos, setTipos] = useState<{ id_tipo_indicio:number; nombre_tipo:string }[]>([]);
+
+  const [escenas, setEscenas] = useState<{ id_escena: number; nombre_escena: string }[]>([]);
+  const [tipos, setTipos] = useState<{ id_tipo_indicio: number; nombre_tipo: string }[]>([]);
   const [loadingLists, setLoadingLists] = useState(true);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // ✅ React Hook Form
+  const { control, handleSubmit, formState: { errors, isValid }, setValue } = useForm<FormData>({
+    mode: 'onChange',
+    defaultValues: {
+      codigo: '',
+      escena: escenaId || '',
+      tipoIndicio: '',
+      descripcion: '',
+      ubicacion: '',
+      fechaRecoleccion: '',
+    },
+  });
 
   useEffect(() => {
     const load = async () => {
@@ -30,49 +48,63 @@ export const IndicioCreatePage = () => {
           escenaRepository.getByExpediente(Number(id)),
           tipoIndicioRepository.getAll({ activo: true })
         ]);
+
         if (escRes.success && escRes.data) {
-          const mapped = escRes.data.map(e => ({ id_escena: e.id_escena, nombre_escena: e.nombre_escena }));
+          const mapped = escRes.data.map(e => ({ 
+            id_escena: e.id_escena, 
+            nombre_escena: e.nombre_escena 
+          }));
           setEscenas(mapped);
-          // Preseleccionar escena si viene desde flujo escena->indicios->new
+
+          // Preseleccionar escena
           if (escenaId) {
-            setEscena(escenaId);
-            // Si la escena no está en el listado (caso raro), agregarla temporalmente
+            setValue('escena', escenaId);
             if (!mapped.some(m => String(m.id_escena) === escenaId)) {
-              setEscenas(prev => [...prev, { id_escena: Number(escenaId), nombre_escena: `Escena ${escenaId}` }]);
+              setEscenas(prev => [...prev, { 
+                id_escena: Number(escenaId), 
+                nombre_escena: `Escena ${escenaId}` 
+              }]);
             }
           }
         }
+
         if (tipRes.success && tipRes.data) {
-          setTipos(tipRes.data.map(t => ({ id_tipo_indicio: t.id_tipo_indicio, nombre_tipo: t.nombre_tipo })));
+          setTipos(tipRes.data.map(t => ({ 
+            id_tipo_indicio: t.id_tipo_indicio, 
+            nombre_tipo: t.nombre_tipo 
+          })));
         }
-      } catch {
-        // silencioso
+      } catch (err) {
+        console.error('Error cargando listas:', err);
       } finally {
         setLoadingLists(false);
       }
     };
     load();
-  }, [id, escenaId]);
+  }, [id, escenaId, setValue]);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: FormData) => {
     if (!id) return;
-    setError(''); setSaving(true);
+    setError('');
+    setSaving(true);
+
     try {
       const res = await indicioRepository.createForExpediente(Number(id), {
-        codigo_indicio: codigo.trim(),
-        id_escena: Number(escena),
-        id_tipo_indicio: Number(tipoIndicio),
-        descripcion_corta: descripcion.trim(),
-        ubicacion_especifica: ubicacion.trim() || undefined,
-        fecha_hora_recoleccion: fechaRecoleccion || undefined
+        codigo_indicio: data.codigo.trim(),
+        id_escena: Number(data.escena),
+        id_tipo_indicio: Number(data.tipoIndicio),
+        descripcion_corta: data.descripcion.trim(),
+        ubicacion_especifica: data.ubicacion.trim() || undefined,
+        fecha_hora_recoleccion: data.fechaRecoleccion || undefined
       });
+
       if (!res.success || !res.data) throw new Error(res.message || 'Error');
+
       navigate(
         escenaId
           ? `/dashboard/expedientes/${id}/escenas/${escenaId}/indicios`
           : `/dashboard/expedientes/${id}/indicios`,
-        { state: fromRevision ? { fromRevision:true } : undefined }
+        { state: fromRevision ? { fromRevision: true } : undefined }
       );
     } catch (e: any) {
       setError(e.message || 'Error');
@@ -90,87 +122,149 @@ export const IndicioCreatePage = () => {
             escenaId
               ? `/dashboard/expedientes/${id}/escenas/${escenaId}/indicios`
               : `/dashboard/expedientes/${id}/indicios`,
-            { state: fromRevision ? { fromRevision:true } : undefined }
+            { state: fromRevision ? { fromRevision: true } : undefined }
           )}
-        >← Volver</Button>
+        >
+          ← Volver
+        </Button>
         <Typography variant="h5" fontWeight={600}>Nuevo Indicio</Typography>
+        <Box width={80} />
       </Box>
-      <Card sx={{ p:3, borderRadius:3, width:'100%', boxSizing:'border-box' }}>
-        <Box component="form" display="flex" flexDirection="column" gap={3} onSubmit={submit}>
+
+      <Card sx={{ p: 3, borderRadius: 3 }}>
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} display="flex" flexDirection="column" gap={3}>
           {error && <Alert severity="error">{error}</Alert>}
+
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <TextField label="Código Indicio" value={codigo} onChange={e=>setCodigo(e.target.value)} required disabled={saving} fullWidth />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                select
-                label="Escena"
-                value={escena}
-                onChange={e=>setEscena(e.target.value)}
-                required
-                disabled={saving || loadingLists || !!escenaId}
-                fullWidth
-              >
-                {escenas.map(sc => (
-                  <MenuItem key={sc.id_escena} value={sc.id_escena}>{sc.nombre_escena}</MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                select
-                label="Tipo Indicio"
-                value={tipoIndicio}
-                onChange={e=>setTipoIndicio(e.target.value)}
-                required
-                disabled={saving || loadingLists}
-                fullWidth
-              >
-                {tipos.map(tp => (
-                  <MenuItem key={tp.id_tipo_indicio} value={tp.id_tipo_indicio}>{tp.nombre_tipo}</MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Descripción Corta"
-                value={descripcion}
-                onChange={e=>setDescripcion(e.target.value)}
-                required
-                multiline
-                minRows={2}
-                disabled={saving}
-                fullWidth
+              <Controller
+                name="codigo"
+                control={control}
+                rules={{ 
+                  required: 'Código es requerido',
+                  minLength: { value: 3, message: 'Mínimo 3 caracteres' }
+                }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Código Indicio"
+                    error={!!errors.codigo}
+                    helperText={errors.codigo?.message}
+                    disabled={saving}
+                    fullWidth
+                  />
+                )}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Ubicación Específica"
-                value={ubicacion}
-                onChange={e=>setUbicacion(e.target.value)}
-                disabled={saving}
-                fullWidth
+
+            <Grid item xs={12} md={4}>
+              <Controller
+                name="escena"
+                control={control}
+                rules={{ required: 'Escena es requerida' }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    select
+                    label="Escena"
+                    error={!!errors.escena}
+                    helperText={errors.escena?.message}
+                    disabled={saving || loadingLists || !!escenaId}
+                    fullWidth
+                  >
+                    {escenas.map(sc => (
+                      <MenuItem key={sc.id_escena} value={sc.id_escena}>
+                        {sc.nombre_escena}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                )}
               />
             </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Controller
+                name="tipoIndicio"
+                control={control}
+                rules={{ required: 'Tipo es requerido' }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    select
+                    label="Tipo Indicio"
+                    error={!!errors.tipoIndicio}
+                    helperText={errors.tipoIndicio?.message}
+                    disabled={saving || loadingLists}
+                    fullWidth
+                  >
+                    {tipos.map(tp => (
+                      <MenuItem key={tp.id_tipo_indicio} value={tp.id_tipo_indicio}>
+                        {tp.nombre_tipo}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                )}
+              />
+            </Grid>
+
             <Grid item xs={12} md={6}>
-              <TextField
-                label="Fecha/Hora Recolección"
-                type="datetime-local"
-                value={fechaRecoleccion}
-                onChange={e=>setFechaRecoleccion(e.target.value)}
-                InputLabelProps={{ shrink:true }}
-                disabled={saving}
-                fullWidth
+              <Controller
+                name="descripcion"
+                control={control}
+                rules={{ 
+                  required: 'Descripción es requerida',
+                  minLength: { value: 10, message: 'Mínimo 10 caracteres' }
+                }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Descripción Corta"
+                    error={!!errors.descripcion}
+                    helperText={errors.descripcion?.message}
+                    multiline
+                    minRows={2}
+                    disabled={saving}
+                    fullWidth
+                  />
+                )}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Controller
+                name="ubicacion"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Ubicación Específica"
+                    disabled={saving}
+                    fullWidth
+                  />
+                )}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Controller
+                name="fechaRecoleccion"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Fecha/Hora Recolección"
+                    type="datetime-local"
+                    InputLabelProps={{ shrink: true }}
+                    disabled={saving}
+                    fullWidth
+                  />
+                )}
               />
             </Grid>
           </Grid>
+
           <Box display="flex" gap={2} flexWrap="wrap">
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={saving || loadingLists || !codigo.trim() || !escena || !tipoIndicio || !descripcion.trim()}
-            >
+            <Button type="submit" variant="contained" disabled={saving || !isValid}>
               {saving ? 'Guardando...' : 'Guardar'}
             </Button>
             <Button
@@ -180,7 +274,7 @@ export const IndicioCreatePage = () => {
                 escenaId
                   ? `/dashboard/expedientes/${id}/escenas/${escenaId}/indicios`
                   : `/dashboard/expedientes/${id}/indicios`,
-                { state: fromRevision ? { fromRevision:true } : undefined }
+                { state: fromRevision ? { fromRevision: true } : undefined }
               )}
             >
               Cancelar

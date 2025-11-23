@@ -1,23 +1,39 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { Box, Card, Typography, TextField, Button, Alert, MenuItem, Grid } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { expedienteRepository } from '../../infrastructure/repositories/ExpedienteRepository';
 import { fiscaliaRepository } from '../../infrastructure/repositories/FiscaliaRepository';
 
+interface FormData {
+  codigoCaso: string;
+  nombreCaso: string;
+  fechaInicio: string;
+  idFiscalia: number | '';
+  descripcionHechos: string;
+  activo: boolean;
+}
+
 export const ExpedienteCreatePage = () => {
   const navigate = useNavigate();
-  const [codigoCaso, setCodigoCaso] = useState('');
-  const [nombreCaso, setNombreCaso] = useState('');
-  const [fechaInicio, setFechaInicio] = useState('');
-  const [idFiscalia, setIdFiscalia] = useState<number | ''>('');
-  const [descripcionHechos, setDescripcionHechos] = useState('');
-  const [fiscalias, setFiscalias] = useState<{ id_fiscalia:number; nombre_fiscalia:string }[]>([]);
+  const [fiscalias, setFiscalias] = useState<{ id_fiscalia: number; nombre_fiscalia: string }[]>([]);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loadingFiscalias, setLoadingFiscalias] = useState(false);
-  const [activo, setActivo] = useState(true);
+
+  // ✅ React Hook Form
+  const { control, handleSubmit, formState: { errors, isValid }, watch } = useForm<FormData>({
+    mode: 'onChange',
+    defaultValues: {
+      codigoCaso: '',
+      nombreCaso: '',
+      fechaInicio: '',
+      idFiscalia: '',
+      descripcionHechos: '',
+      activo: true,
+    },
+  });
 
   useEffect(() => {
     const loadFiscalias = async () => {
@@ -25,32 +41,35 @@ export const ExpedienteCreatePage = () => {
       try {
         const res = await fiscaliaRepository.getAll({ activo: true });
         if (res.success && res.data) {
-          setFiscalias(res.data.map(f => ({ id_fiscalia: f.id_fiscalia, nombre_fiscalia: f.nombre_fiscalia })));
+          setFiscalias(res.data.map(f => ({ 
+            id_fiscalia: f.id_fiscalia, 
+            nombre_fiscalia: f.nombre_fiscalia 
+          })));
         }
-      } catch {}
-      setLoadingFiscalias(false);
+      } catch (err) {
+        console.error('Error cargando fiscalías:', err);
+      } finally {
+        setLoadingFiscalias(false);
+      }
     };
     loadFiscalias();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: FormData) => {
     setError('');
     setDone(false);
-    if (!codigoCaso.trim() || !nombreCaso.trim() || !fechaInicio || !idFiscalia) {
-      setError('Complete todos los campos');
-      return;
-    }
     setSaving(true);
+
     try {
       const res = await expedienteRepository.create({
-        codigo_caso: codigoCaso.trim(),
-        nombre_caso: nombreCaso.trim(),
-        fecha_inicio: fechaInicio,
-        id_fiscalia: Number(idFiscalia),
-        descripcion_hechos: descripcionHechos.trim() || undefined,
-        activo,
+        codigo_caso: data.codigoCaso.trim(),
+        nombre_caso: data.nombreCaso.trim(),
+        fecha_inicio: data.fechaInicio,
+        id_fiscalia: Number(data.idFiscalia),
+        descripcion_hechos: data.descripcionHechos.trim() || undefined,
+        activo: data.activo,
       });
+
       if (!res.success || !res.data) {
         setError(res.message || 'Error al registrar');
       } else {
@@ -71,88 +90,139 @@ export const ExpedienteCreatePage = () => {
           ← Volver
         </Button>
         <Typography variant="h5" fontWeight={600}>Nuevo Expediente</Typography>
-        <Box width={80} /> {/* Espaciador para centrar el título */}
+        <Box width={80} />
       </Box>
-      
-      <Card sx={{ p:3, borderRadius:3, width:'100%', boxSizing:'border-box' }}>
-        <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={3}>
+
+      <Card sx={{ p: 3, borderRadius: 3, width: '100%', boxSizing: 'border-box' }}>
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} display="flex" flexDirection="column" gap={3}>
           {error && <Alert severity="error">{error}</Alert>}
           {done && <Alert severity="success">Expediente creado exitosamente</Alert>}
-          
+
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <TextField
-                label="Código Caso"
-                value={codigoCaso}
-                onChange={(e) => setCodigoCaso(e.target.value)}
-                required
-                disabled={saving}
-                placeholder="MP001-2025-1001"
-                fullWidth
+              <Controller
+                name="codigoCaso"
+                control={control}
+                rules={{ 
+                  required: 'Código es requerido',
+                  minLength: { value: 3, message: 'Mínimo 3 caracteres' }
+                }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Código Caso"
+                    error={!!errors.codigoCaso}
+                    helperText={errors.codigoCaso?.message}
+                    disabled={saving}
+                    placeholder="MP001-2025-1001"
+                    fullWidth
+                  />
+                )}
               />
             </Grid>
+
             <Grid item xs={12} md={4}>
-              <TextField
-                label="Nombre del Caso"
-                value={nombreCaso}
-                onChange={(e) => setNombreCaso(e.target.value)}
-                required
-                disabled={saving}
-                fullWidth
+              <Controller
+                name="nombreCaso"
+                control={control}
+                rules={{ 
+                  required: 'Nombre es requerido',
+                  minLength: { value: 5, message: 'Mínimo 5 caracteres' }
+                }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Nombre del Caso"
+                    error={!!errors.nombreCaso}
+                    helperText={errors.nombreCaso?.message}
+                    disabled={saving}
+                    fullWidth
+                  />
+                )}
               />
             </Grid>
+
             <Grid item xs={12} md={4}>
-              <TextField
-                label="Fecha de Inicio"
-                type="date"
-                value={fechaInicio}
-                onChange={(e) => setFechaInicio(e.target.value)}
-                required
-                disabled={saving}
-                InputLabelProps={{ shrink: true }}
-                fullWidth
+              <Controller
+                name="fechaInicio"
+                control={control}
+                rules={{ required: 'Fecha es requerida' }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Fecha de Inicio"
+                    type="date"
+                    error={!!errors.fechaInicio}
+                    helperText={errors.fechaInicio?.message}
+                    disabled={saving}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                  />
+                )}
               />
             </Grid>
+
             <Grid item xs={12} md={6}>
-              <TextField
-                select
-                label="Fiscalía"
-                value={idFiscalia}
-                onChange={(e) => setIdFiscalia(Number(e.target.value))}
-                required
-                disabled={saving || loadingFiscalias}
-                fullWidth
-              >
-                {fiscalias.map((f) => (
-                  <MenuItem key={f.id_fiscalia} value={f.id_fiscalia}>
-                    {f.nombre_fiscalia}
-                  </MenuItem>
-                ))}
-                {loadingFiscalias && <MenuItem disabled>Cargando...</MenuItem>}
-              </TextField>
+              <Controller
+                name="idFiscalia"
+                control={control}
+                rules={{ required: 'Fiscalía es requerida' }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    select
+                    label="Fiscalía"
+                    error={!!errors.idFiscalia}
+                    helperText={errors.idFiscalia?.message}
+                    disabled={saving || loadingFiscalias}
+                    fullWidth
+                  >
+                    {fiscalias.map((f) => (
+                      <MenuItem key={f.id_fiscalia} value={f.id_fiscalia}>
+                        {f.nombre_fiscalia}
+                      </MenuItem>
+                    ))}
+                    {loadingFiscalias && <MenuItem disabled>Cargando...</MenuItem>}
+                  </TextField>
+                )}
+              />
             </Grid>
+
             <Grid item xs={12} md={6}>
-              <TextField
-                select
-                label="Estado"
-                value={activo ? 'true' : 'false'}
-                onChange={(e) => setActivo(e.target.value === 'true')}
-                disabled={saving}
-                fullWidth
-              >
-                <MenuItem value="true">Activo</MenuItem>
-                <MenuItem value="false">Inactivo</MenuItem>
-              </TextField>
+              <Controller
+                name="activo"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    select
+                    label="Estado"
+                    value={field.value ? 'true' : 'false'}
+                    onChange={(e) => field.onChange(e.target.value === 'true')}
+                    disabled={saving}
+                    fullWidth
+                  >
+                    <MenuItem value="true">Activo</MenuItem>
+                    <MenuItem value="false">Inactivo</MenuItem>
+                  </TextField>
+                )}
+              />
             </Grid>
+
             <Grid item xs={12}>
-              <TextField
-                label="Descripción de los Hechos"
-                value={descripcionHechos}
-                onChange={(e) => setDescripcionHechos(e.target.value)}
-                multiline
-                minRows={3}
-                fullWidth
-                disabled={saving}
+              <Controller
+                name="descripcionHechos"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Descripción de los Hechos"
+                    multiline
+                    minRows={3}
+                    fullWidth
+                    disabled={saving}
+                  />
+                )}
               />
             </Grid>
           </Grid>
@@ -161,7 +231,7 @@ export const ExpedienteCreatePage = () => {
             <Button
               type="submit"
               variant="contained"
-              disabled={saving || !codigoCaso.trim() || !nombreCaso.trim() || !fechaInicio || !idFiscalia}
+              disabled={saving || !isValid}
             >
               {saving ? 'Guardando...' : 'Guardar Expediente'}
             </Button>
