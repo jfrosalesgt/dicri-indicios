@@ -1,6 +1,6 @@
 # 🏛️ DICRI Indicios - Frontend
 
-Sistema web del **Ministerio Público de Guatemala** para la gestión integral de indicios forenses y expedientes criminales del Departamento de Investigaciones Criminalísticas (DICRI).
+Sistema web de **Prueba Técnica** Dirección de Investigación Criminalística (DICRI).
 
 [![React](https://img.shields.io/badge/React-18.3-blue.svg)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
@@ -40,6 +40,7 @@ Sistema web del **Ministerio Público de Guatemala** para la gestión integral d
 - Cambio de contraseña obligatorio
 - Verificación de roles y permisos
 - Gestión de perfiles de usuario
+- React Hook Form para validación optimizada
 
 ### 📁 Gestión de Expedientes (DICRI)
 - **Estados**: `EN_REGISTRO` → `PENDIENTE_REVISION` → `APROBADO/RECHAZADO`
@@ -48,6 +49,7 @@ Sistema web del **Ministerio Público de Guatemala** para la gestión integral d
 - Flujo de revisión y aprobación
 - Trazabilidad de cambios
 - Justificación de rechazos
+- Validación en tiempo real
 
 ### 🔍 Gestión de Escenas del Crimen
 - Registro de múltiples escenas por expediente
@@ -71,6 +73,7 @@ Sistema web del **Ministerio Público de Guatemala** para la gestión integral d
 - Estados de expedientes en tiempo real
 - Total de indicios recolectados
 - Gráficas y visualizaciones
+- Búsqueda optimizada con debounce
 
 ### 🗂️ Catálogos Administrativos
 - Fiscalías
@@ -86,6 +89,7 @@ Sistema web del **Ministerio Público de Guatemala** para la gestión integral d
 - Lazy loading de componentes
 - Hot reload en desarrollo
 - Optimización de performance
+- React Hook Form en todos los formularios
 
 ---
 
@@ -96,6 +100,7 @@ Sistema web del **Ministerio Público de Guatemala** para la gestión integral d
 - **TypeScript 5.9** - Tipado estático y type safety
 - **Vite 7.2** - Build tool ultrarrápido con HMR
 - **React Router 7.9** - Routing con Suspense y lazy loading
+- **React Hook Form 7.x** - Gestión de formularios optimizada
 
 ### Estado y Datos
 - **Redux Toolkit 2.2** - Gestión de estado global
@@ -1203,6 +1208,3 @@ Agradecimientos especiales a los proyectos open source que hacen posible este si
 *Justicia para todos*
 
 ---
-
-**Última actualización:** Noviembre 2025  
-**Versión:** 1.0.0
