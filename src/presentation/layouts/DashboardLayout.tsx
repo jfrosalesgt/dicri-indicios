@@ -137,12 +137,10 @@ export const DashboardLayout = () => {
     <Box display="flex" height="100vh" overflow="hidden">
       <AppBar
         position="fixed"
-        sx={(theme) => ({
+        sx={{
           background: 'linear-gradient(135deg, #1a2b4a 0%, #2c4875 100%)',
-          zIndex: theme.zIndex.appBar + 1,
-          pl: !isMobile && isSidebarOpen ? `${drawerWidth}px` : 0,
-          transition: theme.transitions.create(['padding-left'], { duration: theme.transitions.duration.shortest }),
-        })}
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+        }}
       >
         <Toolbar>
           <IconButton color="inherit" edge="start" onClick={toggleSidebar} sx={{ mr:2 }}>
@@ -159,58 +157,70 @@ export const DashboardLayout = () => {
         </Toolbar>
       </AppBar>
 
-      {isMobile ? (
-        <Drawer
-          variant="temporary"
-          open={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-          sx={{
-            '& .MuiDrawer-paper': {
-              width: drawerWidth,
-              boxSizing: 'border-box',
-              background: 'linear-gradient(180deg, #1a2b4a 0%, #2c4875 100%)',
-              color: '#fff',
-            },
-          }}
-        >
-          {drawerContent}
-        </Drawer>
-      ) : (
-        <Drawer
-          variant="persistent"
-          open={isSidebarOpen}
-          sx={{
-            '& .MuiDrawer-paper': {
-              width: drawerWidth,
-              boxSizing: 'border-box',
-              background: 'linear-gradient(180deg, #1a2b4a 0%, #2c4875 100%)',
-              color: '#fff',
-              position: 'fixed',
-              left: 0,
-              top: 0,
-              height: '100vh',
-              borderRight: '1px solid rgba(255,255,255,0.1)',
-            },
-          }}
-        >
-          {drawerContent}
-        </Drawer>
-      )}
+      {/* ✅ Drawer Temporal para móviles */}
+      <Drawer
+        variant="temporary"
+        open={isMobile && isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        ModalProps={{
+          keepMounted: true, // Mejor performance en móviles
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            boxSizing: 'border-box',
+            background: 'linear-gradient(180deg, #1a2b4a 0%, #2c4875 100%)',
+            color: '#fff',
+          },
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+
+      {/* ✅ Drawer Persistente solo para desktop */}
+      <Drawer
+        variant="persistent"
+        open={!isMobile && isSidebarOpen}
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            boxSizing: 'border-box',
+            background: 'linear-gradient(180deg, #1a2b4a 0%, #2c4875 100%)',
+            color: '#fff',
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            height: '100vh',
+            borderRight: '1px solid rgba(255,255,255,0.1)',
+          },
+        }}
+      >
+        {drawerContent}
+      </Drawer>
       
       <Box
         component="main"
         flexGrow={1}
         bgcolor="#f5f7fa"
         overflow="auto"
-        sx={(theme) => ({
-          p: { xs:2, md:4 },
+        sx={{
+          p: { xs: 2, md: 4 },
           width: '100%',
-          ml: !isMobile && isSidebarOpen ? `${drawerWidth}px` : 0,
-          transition: theme.transitions.create(['margin-left','padding'], { duration: theme.transitions.duration.shortest }),
-        })}
+          // ✅ Margin-left solo en desktop cuando sidebar está abierto
+          ml: { xs: 0, md: !isMobile && isSidebarOpen ? `${drawerWidth}px` : 0 },
+          transition: (theme) => theme.transitions.create(['margin-left', 'padding'], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+          }),
+          // ✅ Asegurar que esté por encima del backdrop
+          position: 'relative',
+          zIndex: 1,
+        }}
       >
         <Toolbar />
-        <Container maxWidth="xl" sx={{ pb:4 }}>
+        <Container maxWidth="xl" sx={{ pb: 4 }}>
           <Outlet />
         </Container>
       </Box>
