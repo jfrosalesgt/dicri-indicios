@@ -8,7 +8,6 @@ const tiles = [
   { title:'Perfiles', hint:'Perfiles del sistema', route:'/dashboard/admin/perfiles' },
   { title:'Fiscalías', hint:'Catálogo fiscalías', route:'/dashboard/fiscalias' },
   { title:'Tipos de Indicio', hint:'Catálogo tipos', route:'/dashboard/tipos-indicio' },
-  { title:'Escenas', hint:'Gestión de escenas', route:'/dashboard/admin/escenas' },  
 ];
 
 export const AdminHomePage = () => {

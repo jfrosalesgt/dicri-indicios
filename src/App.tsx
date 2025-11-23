@@ -29,7 +29,6 @@ const AdminRoute = lazy(() => import('./presentation/routes/AdminRoute').then(m 
 const AdminHomePage = lazy(() => import('./presentation/pages/AdminHomePage').then(m => ({ default: m.AdminHomePage })));
 const RolesListPage = lazy(() => import('./presentation/pages/RolesListPage').then(m => ({ default: m.RolesListPage })));
 const PerfilesListPage = lazy(() => import('./presentation/pages/PerfilesListPage').then(m => ({ default: m.PerfilesListPage })));
-const EscenasListPage = lazy(() => import('./presentation/pages/EscenasListPage').then(m => ({ default: m.EscenasListPage })));
 const IndiciosListPage = lazy(() => import('./presentation/pages/IndiciosListPage').then(m => ({ default: m.IndiciosListPage })));
 const IndiciosExpedientePage = lazy(() => import('./presentation/pages/IndiciosExpedientePage').then(m => ({ default: m.IndiciosExpedientePage })));
 const IndicioCreatePage = lazy(() => import('./presentation/pages/IndicioCreatePage').then(m => ({ default: m.IndicioCreatePage })));
@@ -100,7 +99,6 @@ function App() {
                 <Route index element={<Suspense fallback={<PageLoader />}><AdminHomePage /></Suspense>} />
                 <Route path="roles" element={<Suspense fallback={<PageLoader />}><RolesListPage /></Suspense>} />
                 <Route path="perfiles" element={<Suspense fallback={<PageLoader />}><PerfilesListPage /></Suspense>} />
-                <Route path="escenas" element={<Suspense fallback={<PageLoader />}><EscenasListPage /></Suspense>} />
                 <Route path="indicios" element={<Suspense fallback={<PageLoader />}><IndiciosListPage /></Suspense>} />
               </Route>
               
