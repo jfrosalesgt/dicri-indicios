@@ -1,11 +1,14 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Card, Typography, TextField, Button, Alert, Grid } from '@mui/material';
 import { escenaRepository } from '../../infrastructure/repositories/EscenaRepository';
+import { useAuth } from '../context/AuthContext';
 
 export const SceneCreatePage = () => {
   const { id } = useParams<{ id:string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromRevision = (location.state as any)?.fromRevision === true;
   const [nombre, setNombre] = useState('');
   const [direccion, setDireccion] = useState('');
   const [inicio, setInicio] = useState('');
@@ -13,6 +16,14 @@ export const SceneCreatePage = () => {
   const [descripcion, setDescripcion] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const { user, isLoading } = useAuth();
+
+  useEffect(()=>{
+    if (!isLoading) {
+      const token = localStorage.getItem('dicri_auth_token');
+      if (!user && !token) navigate('/login');
+    }
+  }, [user, isLoading, navigate]);
 
   const submit = async (e:React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +39,7 @@ export const SceneCreatePage = () => {
         descripcion: descripcion.trim() || undefined
       });
       if (!res.success || !res.data) throw new Error(res.message || 'Error');
-      navigate(`/dashboard/expedientes/${id}/escenas`);
+      navigate(`/dashboard/expedientes/${id}/escenas`, { state: fromRevision ? { fromRevision:true } : undefined });
     } catch(e:any){ setError(e.message || 'Error'); }
     finally { setSaving(false); }
   };
@@ -36,7 +47,10 @@ export const SceneCreatePage = () => {
   return (
     <Box width="100%">
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
-        <Button variant="outlined" onClick={()=>navigate(`/dashboard/expedientes/${id}/escenas`)}>← Volver</Button>
+        <Button variant="outlined" onClick={()=>navigate(
+          `/dashboard/expedientes/${id}/escenas`,
+          { state: fromRevision ? { fromRevision:true } : undefined }
+        )}>← Volver</Button>
         <Typography variant="h5" fontWeight={600}>Nueva Escena</Typography>
       </Box>
       <Card sx={{ p:3, borderRadius:3, width:'100%', boxSizing:'border-box' }}>
@@ -61,7 +75,10 @@ export const SceneCreatePage = () => {
           </Grid>
           <Box display="flex" gap={2} flexWrap="wrap">
             <Button type="submit" variant="contained" disabled={saving || !nombre.trim() || !inicio}>{saving?'Guardando...':'Guardar'}</Button>
-            <Button variant="text" disabled={saving} onClick={()=>navigate(`/dashboard/expedientes/${id}/escenas`)}>Cancelar</Button>
+            <Button variant="text" disabled={saving} onClick={()=>navigate(
+              `/dashboard/expedientes/${id}/escenas`,
+              { state: fromRevision ? { fromRevision:true } : undefined }
+            )}>Cancelar</Button>
           </Box>
         </Box>
       </Card>

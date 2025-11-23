@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { MenuItem, TextField, Button, Alert, Card, Box, Typography, Grid } from '@mui/material';
 import { expedienteRepository } from '../../infrastructure/repositories/ExpedienteRepository';
 import { fiscaliaRepository } from '../../infrastructure/repositories/FiscaliaRepository';
+import { useAuth } from '../context/AuthContext';
+import { useAppSelector } from '../../store/store';
 import type { EstadoRevisionDicri, Expediente } from '../../domain/entities/Expediente';
 
 const estados: EstadoRevisionDicri[] = ['EN_REGISTRO','PENDIENTE_REVISION','APROBADO','RECHAZADO'];
@@ -10,6 +12,8 @@ const estados: EstadoRevisionDicri[] = ['EN_REGISTRO','PENDIENTE_REVISION','APRO
 export const ExpedienteEditPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user, isLoading } = useAuth();
+  const reduxUser = useAppSelector(s => s.auth.user);
   const [expediente, setExpediente] = useState<Expediente | null>(null);
   const [nombreCaso, setNombreCaso] = useState('');
   const [fechaInicio, setFechaInicio] = useState('');
@@ -46,6 +50,11 @@ export const ExpedienteEditPage = () => {
       if (r.success && r.data) setFiscalias(r.data.map(f=>({id_fiscalia:f.id_fiscalia,nombre_fiscalia:f.nombre_fiscalia})));
     }).catch(()=>{});
   }, [id]);
+
+  useEffect(()=>{
+    const token = localStorage.getItem('dicri_auth_token');
+    if (!isLoading && !user && !reduxUser && !token) navigate('/login');
+  }, [user, reduxUser, isLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,7 +112,14 @@ export const ExpedienteEditPage = () => {
               </TextField>
             </Grid>
             <Grid item xs={12} md={4}>
-              <TextField select label="Estado Revisión" value={estadoRev} onChange={e=>setEstadoRev(e.target.value as EstadoRevisionDicri)} disabled={saving} fullWidth>
+              <TextField
+                select
+                label="Estado Revisión"
+                value={estadoRev}
+                onChange={e=>setEstadoRev(e.target.value as EstadoRevisionDicri)}
+                disabled
+                helperText="Estado bloqueado (flujo controlado por revisión)"
+              >
                 {estados.map(es=> <MenuItem key={es} value={es}>{es}</MenuItem>)}
               </TextField>
             </Grid>

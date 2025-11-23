@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Card, Typography, Chip, Button } from '@mui/material';
 import { indicioRepository } from '../../infrastructure/repositories/IndicioRepository';
 import type { Indicio } from '../../domain/entities/Indicio';
+import { useAuth } from '../context/AuthContext';
 
 export const SceneIndiciosPage = () => {
   const { id, escenaId } = useParams<{ id:string; escenaId:string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromRevision = (location.state as any)?.fromRevision === true;
   const [items, setItems] = useState<Indicio[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { user, isLoading } = useAuth();
 
   const load = async () => {
     if (!escenaId) return;
@@ -22,13 +26,25 @@ export const SceneIndiciosPage = () => {
   };
 
   useEffect(()=>{ load(); }, [escenaId]);
+  useEffect(()=>{
+    if (!isLoading) {
+      const token = localStorage.getItem('dicri_auth_token');
+      if (!user && !token) navigate('/login');
+    }
+  }, [user, isLoading, navigate]);
 
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" mb={3} flexWrap="wrap" gap={2}>
-        <Button variant="outlined" onClick={()=>navigate(`/dashboard/expedientes/${id}/escenas`)}>← Escenas</Button>
+        <Button variant="outlined" onClick={()=>navigate(
+          `/dashboard/expedientes/${id}/escenas`,
+          { state: fromRevision ? { fromRevision:true } : undefined }
+        )}>← Escenas</Button>
         <Typography variant="h5" fontWeight={600}>Indicios de Escena {escenaId}</Typography>
-        <Button variant="contained" onClick={()=>navigate(`/dashboard/expedientes/${id}/escenas/${escenaId}/indicios/new`)}>Nuevo Indicio</Button>
+        <Button variant="contained" onClick={()=>navigate(
+          `/dashboard/expedientes/${id}/escenas/${escenaId}/indicios/new`,
+          { state: fromRevision ? { fromRevision:true } : undefined }
+        )}>Nuevo Indicio</Button>
       </Box>
       <Card sx={{ p:0 }}>
         <Box overflow="auto">
@@ -60,7 +76,10 @@ export const SceneIndiciosPage = () => {
                   </td>
                   <td style={{ padding:10 }}>{i.fecha_hora_recoleccion ? new Date(i.fecha_hora_recoleccion).toLocaleString('es-GT') : '—'}</td>
                   <td style={{ padding:10 }}>
-                    <Button size="small" variant="outlined" onClick={()=>navigate(`/dashboard/expedientes/${id}/indicios/${i.id_indicio}/edit`)}>Editar</Button>
+                    <Button size="small" variant="outlined" onClick={()=>navigate(
+                      `/dashboard/expedientes/${id}/indicios/${i.id_indicio}/edit`,
+                      { state: fromRevision ? { fromRevision:true } : undefined }
+                    )}>Editar</Button>
                   </td>
                 </tr>
               ))}

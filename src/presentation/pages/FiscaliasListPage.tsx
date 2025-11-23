@@ -29,7 +29,18 @@ export const FiscaliasListPage = () => {
         <Button variant="contained" onClick={() => navigate('/dashboard/fiscalias/new')}>Nueva Fiscalía</Button>
       </Box>
       <Card sx={{ p:2, mb:3 }}>
-        <TextField select label="Activo" size="small" value={activo} onChange={e => { setActivo(e.target.value); }} sx={{ width:180, mr:2 }} />
+        <TextField
+          select
+          label="Activo"
+          size="small"
+          value={activo}
+          onChange={e => { setActivo(e.target.value); }}
+          sx={{ width:180, mr:2 }}
+        >
+          <MenuItem value=''>Todos</MenuItem>
+            <MenuItem value='true'>Activos</MenuItem>
+            <MenuItem value='false'>Inactivos</MenuItem>
+        </TextField>
         <Button variant="outlined" disabled={loading} onClick={load}>Filtrar</Button>
       </Card>
       <Card sx={{ p:0 }}>

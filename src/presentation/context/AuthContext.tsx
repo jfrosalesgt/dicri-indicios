@@ -2,9 +2,8 @@ import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import type { LoginCredentials, ChangePasswordRequest } from '../../domain/entities/Auth';
 import type { User, Perfil, Role } from '../../domain/entities/User';
 import type { Module } from '../../domain/entities/Module';
-import { useDispatch, useSelector } from 'react-redux';
-import { loginAsync, verifyTokenAsync, logout, changePasswordAsync } from '../store/authSlice';
-import type { RootState, AppDispatch } from '../store/store';
+import { useAppDispatch, useAppSelector } from '../../store/store';
+import { loginAsync, verifyTokenAsync, logout, changePasswordAsync } from '../../store/authSlice';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -36,7 +35,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const {
     isAuthenticated,
     isLoading,
@@ -45,7 +44,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     roles,
     modulos,
     needsPasswordChange,
-  } = useSelector((state: RootState) => state.auth);
+  } = useAppSelector((state) => state.auth);
 
   const verifyToken = async (): Promise<boolean> => {
     try {

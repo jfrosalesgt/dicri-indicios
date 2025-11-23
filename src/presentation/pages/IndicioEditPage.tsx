@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Card, Typography, TextField, Button, Alert, MenuItem, Grid } from '@mui/material';
 import { indicioRepository } from '../../infrastructure/repositories/IndicioRepository';
 import { tipoIndicioRepository } from '../../infrastructure/repositories/TipoIndicioRepository';
@@ -10,6 +10,8 @@ const estados: EstadoIndicio[] = ['RECOLECTADO','EN_CUSTODIA','EN_ANALISIS','ANA
 export const IndicioEditPage = () => {
   const { id, indicioId } = useParams<{ id:string; indicioId:string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromRevision = (location.state as any)?.fromRevision === true;
   const [indicio, setIndicio] = useState<Indicio | null>(null);
   const [descripcion, setDescripcion] = useState('');
   const [ubicacion, setUbicacion] = useState('');
@@ -69,7 +71,7 @@ export const IndicioEditPage = () => {
         estado_actual: estado,
       });
       if (!res.success) throw new Error(res.message || 'Error al actualizar');
-      navigate(`/dashboard/expedientes/${id}/indicios`);
+      navigate(`/dashboard/expedientes/${id}/indicios`, { state: fromRevision ? { fromRevision:true } : undefined });
     } catch(e:any){ setError(e.message || 'Error'); }
     finally { setSaving(false); }
   };
@@ -78,7 +80,10 @@ export const IndicioEditPage = () => {
   if (error || !indicio) return (
     <Box>
       <Alert severity="error" sx={{ mb:2 }}>{error || 'Indicio no encontrado'}</Alert>
-      <Button variant="outlined" onClick={()=>navigate(`/dashboard/expedientes/${id}/indicios`)}>Volver</Button>
+      <Button variant="outlined" onClick={()=>navigate(
+        `/dashboard/expedientes/${id}/indicios`,
+        { state: fromRevision ? { fromRevision:true } : undefined }
+      )}>Volver</Button>
     </Box>
   );
 
@@ -144,7 +149,10 @@ export const IndicioEditPage = () => {
             <Button type="submit" variant="contained" disabled={saving || !descripcion.trim()}>
               {saving ? 'Guardando...' : 'Guardar Cambios'}
             </Button>
-            <Button variant="text" disabled={saving} onClick={()=>navigate(`/dashboard/expedientes/${id}/indicios`)}>Cancelar</Button>
+            <Button variant="text" disabled={saving} onClick={()=>navigate(
+              `/dashboard/expedientes/${id}/indicios`,
+              { state: fromRevision ? { fromRevision:true } : undefined }
+            )}>Cancelar</Button>
           </Box>
         </Box>
       </Card>

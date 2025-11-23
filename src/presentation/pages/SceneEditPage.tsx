@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Card, Typography, TextField, Button, Alert, MenuItem, Grid } from '@mui/material';
 import { escenaRepository } from '../../infrastructure/repositories/EscenaRepository';
 import type { Escena } from '../../domain/entities/Escena';
+import { useAuth } from '../context/AuthContext';
 
 export const SceneEditPage = () => {
   const { id, escenaId } = useParams<{ id:string; escenaId:string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromRevision = (location.state as any)?.fromRevision === true;
   const [escena, setEscena] = useState<Escena | null>(null);
   const [nombre, setNombre] = useState('');
   const [direccion, setDireccion] = useState('');
@@ -17,6 +20,15 @@ export const SceneEditPage = () => {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { user, isLoading } = useAuth();
+
+  useEffect(()=>{ if (!isLoading && !user) navigate('/login'); }, [user, isLoading, navigate]);
+  useEffect(()=>{
+    if (!isLoading) {
+      const token = localStorage.getItem('dicri_auth_token');
+      if (!user && !token) navigate('/login');
+    }
+  }, [user, isLoading, navigate]);
 
   useEffect(()=>{
     const load = async () => {
@@ -53,7 +65,7 @@ export const SceneEditPage = () => {
         activo: activo === 'true'
       });
       if (!res.success) throw new Error(res.message || 'Error al actualizar');
-      navigate(`/dashboard/expedientes/${id}/escenas`);
+      navigate(`/dashboard/expedientes/${id}/escenas`, { state: fromRevision ? { fromRevision:true } : undefined });
     } catch(e:any){ setError(e.message || 'Error'); }
     finally { setSaving(false); }
   };
@@ -62,7 +74,10 @@ export const SceneEditPage = () => {
   if (error || !escena) return (
     <Box>
       <Alert severity="error" sx={{ mb:2 }}>{error || 'Escena no encontrada'}</Alert>
-      <Button variant="outlined" onClick={()=>navigate(`/dashboard/expedientes/${id}/escenas`)}>Volver</Button>
+      <Button variant="outlined" onClick={()=>navigate(
+        `/dashboard/expedientes/${id}/escenas`,
+        { state: fromRevision ? { fromRevision:true } : undefined }
+      )}>Volver</Button>
     </Box>
   );
 
@@ -99,7 +114,10 @@ export const SceneEditPage = () => {
             <Button type="submit" variant="contained" disabled={saving || !nombre.trim() || !inicio}>
               {saving ? 'Guardando...' : 'Guardar Cambios'}
             </Button>
-            <Button variant="text" disabled={saving} onClick={()=>navigate(`/dashboard/expedientes/${id}/escenas`)}>Cancelar</Button>
+            <Button variant="text" disabled={saving} onClick={()=>navigate(
+              `/dashboard/expedientes/${id}/escenas`,
+              { state: fromRevision ? { fromRevision:true } : undefined }
+            )}>Cancelar</Button>
           </Box>
         </Box>
       </Card>

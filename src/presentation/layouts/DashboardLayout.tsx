@@ -26,7 +26,10 @@ import {
 } from '@mui/icons-material';
 import { getIconComponent } from '../utils/iconMapper';
 import type { Module } from '../../domain/entities/Module';
+import { useAppSelector, useAppDispatch } from '../../store/store';
+import { logout as logoutAction } from '../../store/authSlice';
 
+// DECLARAR LA CONSTANTE drawerWidth
 const drawerWidth = 260;
 
 export const DashboardLayout = () => {
@@ -34,11 +37,26 @@ export const DashboardLayout = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
-  const { user, logout, modulos } = useAuth();
+  const { user:ctxUser, logout:ctxLogout, modulos:ctxModulos, isLoading } = useAuth();
+  const reduxUser = useAppSelector(s => s.auth.user);
+  const reduxModulos = useAppSelector(s => s.auth.modulos);
+  const dispatch = useAppDispatch();
+
+  const user = reduxUser || ctxUser;
+  const modulos = (reduxModulos && reduxModulos.length > 0) ? reduxModulos : ctxModulos;
+
   const navigate = useNavigate();
 
+  useEffect(()=>{
+    if (!isLoading) {
+      const token = localStorage.getItem('dicri_auth_token');
+      if (!user && !token) navigate('/login');
+    }
+  }, [user, isLoading, navigate]);
+
   const handleLogout = () => {
-    logout();
+    dispatch(logoutAction());
+    ctxLogout?.();
     navigate('/login');
   };
 

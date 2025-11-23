@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Card, Typography, Button, Chip } from '@mui/material';
 import { indicioRepository } from '../../infrastructure/repositories/IndicioRepository';
 import type { Indicio } from '../../domain/entities/Indicio';
@@ -7,6 +7,8 @@ import type { Indicio } from '../../domain/entities/Indicio';
 export const IndiciosExpedientePage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromRevision = (location.state as any)?.fromRevision === true;
   const [items, setItems] = useState<Indicio[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -41,9 +43,15 @@ export const IndiciosExpedientePage = () => {
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" mb={3} flexWrap="wrap" gap={2}>
-        <Button variant="outlined" onClick={() => navigate(`/dashboard/expedientes/${id}`)}>← Volver</Button>
+        <Button variant="outlined" onClick={() => navigate(
+          `/dashboard/expedientes/${id}`,
+          { state: fromRevision ? { fromRevision:true } : undefined }
+        )}>← Volver</Button>
         <Typography variant="h5" fontWeight={600}>Indicios del Expediente {id}</Typography>
-        <Button variant="contained" onClick={() => navigate(`/dashboard/expedientes/${id}/indicios/new`)}>Nuevo Indicio</Button>
+        <Button variant="contained" onClick={() => navigate(
+          `/dashboard/expedientes/${id}/indicios/new`,
+          { state: fromRevision ? { fromRevision:true } : undefined }
+        )}>Nuevo Indicio</Button>
       </Box>
       <Card sx={{ p:0 }}>
         <Box overflow="auto">
@@ -80,7 +88,10 @@ export const IndiciosExpedientePage = () => {
                   <td style={{ padding:10 }}>{ind.nombre_escena || '—'}</td>
                   <td style={{ padding:10 }}>{ind.fecha_hora_recoleccion ? new Date(ind.fecha_hora_recoleccion).toLocaleString('es-GT') : '—'}</td>
                   <td style={{ padding:10 }}>
-                    <Button size="small" variant="outlined" onClick={() => navigate(`/dashboard/expedientes/${id}/indicios/${ind.id_indicio}/edit`)}>Editar</Button>{' '}
+                    <Button size="small" variant="outlined" onClick={() => navigate(
+                      `/dashboard/expedientes/${id}/indicios/${ind.id_indicio}/edit`,
+                      { state: fromRevision ? { fromRevision:true } : undefined }
+                    )}>Editar</Button>{' '}
                     <Button size="small" variant="text" color="error" onClick={() => handleDelete(ind.id_indicio)}>Eliminar</Button>
                   </td>
                 </tr>

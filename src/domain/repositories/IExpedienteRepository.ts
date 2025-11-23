@@ -29,6 +29,10 @@ export interface IExpedienteRepository {
   create(data: CreateExpedienteRequest): Promise<ApiResponse<Expediente>>;
   update(id: number, data: UpdateExpedienteRequest): Promise<ApiResponse<void>>;
   delete(id: number): Promise<ApiResponse<void>>;
+  // Post actions for review workflow
+  enviarRevision(id: number): Promise<ApiResponse<void>>;
+  aprobar(id: number): Promise<ApiResponse<void>>;
+  rechazar(id: number, data: { justificacion: string }): Promise<ApiResponse<void>>;
   getPaged(params: {
     page: number;
     pageSize: number;

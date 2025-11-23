@@ -22,9 +22,15 @@ export const LoginPage = () => {
     setIsLoading(true);
     try {
       await login({ nombre_usuario: nombreUsuario, clave });
-// Decide destino: si tiene módulo expedientes
-      const hasExpedientes = modulos.some(m => m.ruta === '/expedientes' || m.ruta.endsWith('/expedientes'));
-      navigate(hasExpedientes ? '/dashboard/expedientes' : '/dashboard');
+      
+      // Verificar si necesita cambiar contraseña
+      const userData = modulos.length > 0; // Si hay módulos, el login fue exitoso
+      
+      // Redirigir según el caso
+      if (userData) {
+        const hasExpedientes = modulos.some(m => m.ruta === '/expedientes' || m.ruta.includes('/expedientes'));
+        navigate(hasExpedientes ? '/dashboard/expedientes' : '/dashboard');
+      }
     } catch (err: any) {
       setError(err?.message || 'Error al iniciar sesión');
     } finally {

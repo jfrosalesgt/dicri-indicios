@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Card, Typography, TextField, Button, Alert, MenuItem, Grid } from '@mui/material';
 import { indicioRepository } from '../../infrastructure/repositories/IndicioRepository';
 import { escenaRepository } from '../../infrastructure/repositories/EscenaRepository';
 import { tipoIndicioRepository } from '../../infrastructure/repositories/TipoIndicioRepository';
+import { useAuth } from '../context/AuthContext';
 
 export const IndicioCreatePage = () => {
   const { id, escenaId } = useParams<{ id: string; escenaId?: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromRevision = (location.state as any)?.fromRevision === true;
   const [codigo, setCodigo] = useState('');
   const [escena, setEscena] = useState('');
   const [tipoIndicio, setTipoIndicio] = useState('');
@@ -19,6 +22,14 @@ export const IndicioCreatePage = () => {
   const [loadingLists, setLoadingLists] = useState(true);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const { user, isLoading } = useAuth();
+
+  useEffect(()=>{
+    if (!isLoading) {
+      const token = localStorage.getItem('dicri_auth_token');
+      if (!user && !token) navigate('/login');
+    }
+  }, [user, isLoading, navigate]);
 
   useEffect(() => {
     const load = async () => {
@@ -69,7 +80,8 @@ export const IndicioCreatePage = () => {
       navigate(
         escenaId
           ? `/dashboard/expedientes/${id}/escenas/${escenaId}/indicios`
-          : `/dashboard/expedientes/${id}/indicios`
+          : `/dashboard/expedientes/${id}/indicios`,
+        { state: fromRevision ? { fromRevision:true } : undefined }
       );
     } catch (e: any) {
       setError(e.message || 'Error');
@@ -86,7 +98,8 @@ export const IndicioCreatePage = () => {
           onClick={() => navigate(
             escenaId
               ? `/dashboard/expedientes/${id}/escenas/${escenaId}/indicios`
-              : `/dashboard/expedientes/${id}/indicios`
+              : `/dashboard/expedientes/${id}/indicios`,
+            { state: fromRevision ? { fromRevision:true } : undefined }
           )}
         >← Volver</Button>
         <Typography variant="h5" fontWeight={600}>Nuevo Indicio</Typography>
@@ -175,7 +188,8 @@ export const IndicioCreatePage = () => {
               onClick={() => navigate(
                 escenaId
                   ? `/dashboard/expedientes/${id}/escenas/${escenaId}/indicios`
-                  : `/dashboard/expedientes/${id}/indicios`
+                  : `/dashboard/expedientes/${id}/indicios`,
+                { state: fromRevision ? { fromRevision:true } : undefined }
               )}
             >
               Cancelar

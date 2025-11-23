@@ -10,22 +10,35 @@ export class AuthRepository implements IAuthRepository {
   private readonly baseUrl = '/auth';
 
   async login(credentials: LoginCredentials): Promise<ApiResponse<LoginResponse>> {
-    const response = await httpClient.post<ApiResponse<LoginResponse>>(
-      `${this.baseUrl}/login`,
-      credentials
-    );
+    try {
+      const response = await httpClient.post<ApiResponse<any>>(
+        `${this.baseUrl}/login`,
+        credentials
+      );
 
-    // Store token and expiration
-    if (response.data.success && response.data.data) {
-      const token = response.data.data.token;
-      httpClient.setToken(token);
+      // Mapear 'usuario' a 'user' si es necesario para mantener consistencia
+      if (response.data && response.data.usuario && !response.data.user) {
+        response.data.user = response.data.usuario;
+      }
 
-      // Decode token to get expiration
-      const decoded: AuthUser = jwtDecode(token);
-      localStorage.setItem(config.tokenExpKey, decoded.exp.toString());
+      // Store token and expiration
+      if (response.data.success && response.data.data) {
+        const token = response.data.data.token;
+        httpClient.setToken(token);
+
+        // Decode token to get expiration
+        const decoded: AuthUser = jwtDecode(token);
+        localStorage.setItem(config.tokenExpKey, decoded.exp.toString());
+      }
+
+      return response.data;
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Error al iniciar sesión',
+        data: null
+      };
     }
-
-    return response.data;
   }
 
   async verify(): Promise<ApiResponse<AuthUser>> {

@@ -51,6 +51,22 @@ class ExpedienteRepository implements IExpedienteRepository {
     const response = await httpClient.delete<ApiResponse<void>>(`${this.baseUrl}/${id}`);
     return response.data;
   }
+
+  // Acciones de flujo DICRI
+  async enviarRevision(id: number): Promise<ApiResponse<void>> {
+    const res = await httpClient.post<ApiResponse<void>>(`${this.baseUrl}/${id}/enviar-revision`, {});
+    return res.data;
+  }
+
+  async aprobar(id: number): Promise<ApiResponse<void>> {
+    const res = await httpClient.post<ApiResponse<void>>(`${this.baseUrl}/${id}/aprobar`, {});
+    return res.data;
+  }
+
+  async rechazar(id: number, data: { justificacion: string }): Promise<ApiResponse<void>> {
+    const res = await httpClient.post<ApiResponse<void>>(`${this.baseUrl}/${id}/rechazar`, data);
+    return res.data;
+  }
 }
 
 export const expedienteRepository = new ExpedienteRepository();

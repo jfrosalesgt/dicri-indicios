@@ -18,6 +18,7 @@ import { TiposIndicioListPage } from './presentation/pages/TiposIndicioListPage'
 import { TipoIndicioDetailPage } from './presentation/pages/TipoIndicioDetailPage';
 import { TipoIndicioCreatePage } from './presentation/pages/TipoIndicioCreatePage';
 import { RevisionExpedientesPage } from './presentation/pages/RevisionExpedientesPage';
+import { RevisionExpedienteDetailPage } from './presentation/pages/RevisionExpedienteDetailPage';
 import { ReportesPage } from './presentation/pages/ReportesPage';
 import { AdminRoute } from './presentation/routes/AdminRoute';
 import { AdminHomePage } from './presentation/pages/AdminHomePage';
@@ -78,7 +79,10 @@ function App() {
               <Route path="investigaciones" element={<PlaceholderPage title="Investigaciones (Implementar vistas similares)" />} />
               {/* Indicios */}
               <Route path="indicios" element={<PlaceholderPage title="Indicios (Implementar vistas similares)" />} />
-              <Route path="revision" element={<RevisionExpedientesPage />} />
+              <Route path="revision">
+                <Route index element={<RevisionExpedientesPage />} />
+                <Route path=":id" element={<RevisionExpedienteDetailPage />} />
+              </Route>
               <Route path="reportes" element={<ReportesPage />} />
               <Route path="admin" element={<AdminRoute />}>
                 <Route index element={<AdminHomePage />} />
