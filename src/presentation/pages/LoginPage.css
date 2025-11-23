@@ -245,8 +245,47 @@
   text-decoration: underline;
 }
 
+/* Animaciones sutiles */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Optimizaciones móviles */
 @media (max-width: 960px) {
   .mp-text { font-size: clamp(56px, 18vw, 90px); }
   .mp-title { font-size: clamp(20px, 6vw, 28px); }
   .mp-subtitle { padding: 10px 24px; }
+  .MuiCard-root {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25) !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .MuiContainer-root {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+
+/* Mejoras de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

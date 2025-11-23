@@ -1,4 +1,5 @@
 import type { User, Perfil, Role } from './User';
+import type { Module } from './Module';
 
 export interface LoginCredentials {
   nombre_usuario: string;
@@ -10,6 +11,7 @@ export interface LoginResponse {
   usuario: User;
   perfiles: Perfil[];
   roles: Role[];
+  modulos: Module[];
 }
 
 export interface AuthUser {
@@ -18,6 +20,7 @@ export interface AuthUser {
   email: string;
   perfiles: number[];
   roles: string[];
+  modulos: number[];
   iat: number;
   exp: number;
 }

@@ -1,9 +1,9 @@
-import { createContext, useContext, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { LoginCredentials, ChangePasswordRequest } from '../../domain/entities/Auth';
 import type { User, Perfil, Role } from '../../domain/entities/User';
-import { useDispatch, useSelector } from 'react-redux';
-import { loginAsync, verifyTokenAsync, logout, changePasswordAsync } from '../store/authSlice';
-import type { RootState, AppDispatch } from '../store/store';
+import type { Module } from '../../domain/entities/Module';
+import { useAppDispatch, useAppSelector } from '../../store/store';
+import { loginAsync, verifyTokenAsync, logout, changePasswordAsync } from '../../store/authSlice';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -11,11 +11,13 @@ interface AuthContextType {
   user: User | null;
   perfiles: Perfil[];
   roles: Role[];
+  modulos: Module[];
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
   verifyToken: () => Promise<boolean>;
   needsPasswordChange: boolean;
   changePassword: (data: ChangePasswordRequest) => Promise<void>;
+  hasModule: (routePath: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,17 +35,42 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
+  const [isInitialized, setIsInitialized] = useState(false); // ✅ Nuevo estado
+  
   const {
     isAuthenticated,
-    isLoading,
+    isLoading: stateLoading,
     user,
     perfiles,
     roles,
+    modulos,
     needsPasswordChange,
-  } = useSelector((state: RootState) => state.auth);
+  } = useAppSelector((state) => state.auth);
+
+  // ✅ isLoading debe incluir la inicialización
+  const isLoading = stateLoading || !isInitialized;
+
+  useEffect(() => {
+    // ✅ Verificar si Redux Persist ya cargó el estado
+    const initAuth = async () => {
+      if (isAuthenticated && user && modulos.length > 0) {
+        // Ya hay sesión activa, validar token
+        try {
+          await dispatch(verifyTokenAsync());
+        } catch (error) {
+          console.error('Token inválido:', error);
+        }
+      }
+      setIsInitialized(true);
+    };
+
+    initAuth();
+  }, []); // ✅ Solo ejecutar una vez al montar
 
   const verifyToken = async (): Promise<boolean> => {
+    if (!isAuthenticated) return false;
+    
     try {
       const result = await dispatch(verifyTokenAsync());
       return result.type.endsWith('fulfilled');
@@ -70,9 +97,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  useEffect(() => {
-    dispatch(verifyTokenAsync());
-  }, [dispatch]);
+  const hasModule = (routePath: string): boolean => {
+    return modulos.some(modulo => modulo.ruta === routePath && modulo.activo);
+  };
 
   const value: AuthContextType = {
     isAuthenticated,
@@ -80,11 +107,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     perfiles,
     roles,
+    modulos,
     login,
     logout: handleLogout,
     verifyToken,
     needsPasswordChange,
     changePassword,
+    hasModule,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

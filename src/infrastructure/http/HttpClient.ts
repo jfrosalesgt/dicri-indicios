@@ -9,7 +9,8 @@ export interface HttpClientConfig {
 
 export class HttpClient {
   private client: AxiosInstance;
-  private tokenKey: string = config.tokenKey;
+  // ✅ Función para obtener token (lazy evaluation)
+  private getToken: (() => string | null) | null = null;
 
   constructor(clientConfig?: HttpClientConfig) {
     this.client = axios.create({
@@ -24,84 +25,34 @@ export class HttpClient {
     this.setupInterceptors();
   }
 
+  // ✅ Método para inyectar el getter del token
+  public setTokenGetter(getter: () => string | null): void {
+    this.getToken = getter;
+  }
+
   private setupInterceptors(): void {
-    // Request interceptor - Add token to headers
     this.client.interceptors.request.use(
       (config) => {
-        const token = this.getToken();
+        // ✅ Obtener token solo cuando se necesita
+        const token = this.getToken?.();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
       },
-      (error) => {
-        return Promise.reject(error);
-      }
+      (error) => Promise.reject(error)
     );
 
-    // Response interceptor - Handle common errors
     this.client.interceptors.response.use(
       (response) => response,
       (error: AxiosError) => {
-        if (error.response) {
-          // Handle specific HTTP error codes
-          switch (error.response.status) {
-            case 401:
-              // Unauthorized - Clear token and redirect to login
-              this.clearToken();
-              window.location.href = '/login';
-              break;
-            case 403:
-              // Forbidden
-              console.error('Access denied');
-              break;
-            case 404:
-              // Not found
-              console.error('Resource not found');
-              break;
-            case 500:
-              // Server error
-              console.error('Internal server error');
-              break;
-          }
-        } else if (error.request) {
-          // Request made but no response
-          console.error('No response from server');
-        } else {
-          // Error in request setup
-          console.error('Error setting up request:', error.message);
+        if (error.response?.status === 401) {
+          // ✅ Solo limpiar en cliente, no tocar Redux aquí
+          window.location.href = '/login';
         }
         return Promise.reject(error);
       }
     );
-  }
-
-  // Token management
-  public setToken(token: string): void {
-    localStorage.setItem(this.tokenKey, token);
-  }
-
-  public getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
-  }
-
-  public clearToken(): void {
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(config.tokenExpKey);
-  }
-
-  public isAuthenticated(): boolean {
-    const token = this.getToken();
-    if (!token) return false;
-
-    // Check if token is expired
-    const exp = localStorage.getItem(config.tokenExpKey);
-    if (exp) {
-      const expTime = parseInt(exp, 10) * 1000; // Convert to milliseconds
-      return Date.now() < expTime;
-    }
-
-    return !!token;
   }
 
   // HTTP Methods

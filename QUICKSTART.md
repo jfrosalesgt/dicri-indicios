@@ -161,6 +161,80 @@ PUT    /api/users/:id    # Actualizar usuario
 DELETE /api/users/:id    # Eliminar usuario
 ```
 
+### Expedientes (Investigaciones DICRI)
+
+Endpoints:
+```
+GET    /api/expedientes
+GET    /api/expedientes/{id}
+POST   /api/expedientes
+PUT    /api/expedientes/{id}
+DELETE /api/expedientes/{id}
+```
+
+Estados (estado_revision_dicri):
+EN_REGISTRO | PENDIENTE_REVISION | APROBADO | RECHAZADO
+
+Crear:
+```json
+{
+  "codigo_caso": "MP001-2025-1005",
+  "nombre_caso": "Homicidio en Zona 11",
+  "fecha_inicio": "2025-11-20",
+  "id_fiscalia": 1,
+  "descripcion_hechos": "Investigación sobre el hallazgo de un cuerpo con herida de bala"
+}
+```
+
+Respuesta creación (201):
+```json
+{
+  "success": true,
+  "message": "Expediente creado exitosamente",
+  "data": {
+    "id_investigacion": 9,
+    "codigo_caso": "MP001-2025-1005",
+    "estado_revision_dicri": "EN_REGISTRO",
+    "usuario_creacion": "admin",
+    "fecha_creacion": "2025-11-22T21:38:19.943Z"
+  }
+}
+```
+
+Actualizar:
+```json
+{
+  "descripcion_hechos": "Descripción ajustada",
+  "estado_revision_dicri": "PENDIENTE_REVISION",
+  "activo": true
+}
+```
+
+Respuesta actualización (200):
+```json
+{ "success": true, "message": "Expediente actualizado exitosamente", "data": null }
+```
+
+> El listado admite filtros: estado_revision, id_fiscalia, id_usuario_registro, activo.
+
+### Crear Indicio en Expediente
+
+POST /api/expedientes/{id}/indicios
+Campos: codigo_indicio, id_escena, id_tipo_indicio, descripcion_corta, ubicacion_especifica?, fecha_hora_recoleccion?
+Estado inicial: RECOLECTADO
+
+---
+
+## 📂 Catálogos Rápidos
+
+Fiscalías:
+GET /api/fiscalias
+POST /api/fiscalias
+
+Tipos de Indicio:
+GET /api/tipos-indicio
+POST /api/tipos-indicio
+
 ---
 
 ## 🎨 Tecnologías Principales

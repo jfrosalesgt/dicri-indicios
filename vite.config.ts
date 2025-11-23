@@ -10,6 +10,21 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    // ✅ Optimizaciones de build
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Separar vendors grandes
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'mui-vendor': ['@mui/material', '@mui/icons-material'],
+          'redux-vendor': ['@reduxjs/toolkit', 'react-redux', 'redux-persist'],
+        },
+      },
+    },
+    // ✅ Chunk size warnings
+    chunkSizeWarningLimit: 1000,
+  },
   server: {
     port: 5173,
     host: true, // Expone el servidor a la red de Docker
