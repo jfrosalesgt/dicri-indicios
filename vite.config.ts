@@ -11,6 +11,8 @@ export default defineConfig({
     },
   },
   build: {
+    // ✅ Source maps para debug en producción
+    sourcemap: true,
     // ✅ Optimizaciones de build
     rollupOptions: {
       output: {

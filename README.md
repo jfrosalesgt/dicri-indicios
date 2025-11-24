@@ -318,76 +318,467 @@ npm run docker:down        # Detiene y limpia contenedores
 
 ## 🐳 Docker
 
-### Docker Compose (Recomendado)
+El proyecto incluye dos configuraciones Docker:
+- **Desarrollo con Hot Reload** (puerto 8080) - Para desarrollo activo
+- **Producción con Nginx** (puerto 8081) - Para deployment optimizado
 
-#### Desarrollo con Hot Reload (Puerto 8080)
+### 🔧 Desarrollo con Hot Reload
+
+El modo desarrollo mantiene sincronización en tiempo real con tu código fuente.
+
+#### Levantar Contenedor de Desarrollo
+
 ```bash
-# Levantar contenedor de desarrollo
+# Iniciar contenedor de desarrollo
 docker-compose up -d frontend-dev
 
 # Ver logs en tiempo real
-docker-compose logs -f frontend-dev
+docker logs -f dicri-frontend-dev
 
-# Detener contenedor
-docker-compose down frontend-dev
+# O con docker-compose
+docker-compose logs -f frontend-dev
+```
+
+#### Reconstruir Contenedor de Desarrollo
+
+```bash
+# Detener y eliminar contenedor actual
+docker stop dicri-frontend-dev
+docker rm dicri-frontend-dev
+
+# Reconstruir imagen (opcional, solo si cambió Dockerfile)
+docker-compose build frontend-dev
+
+# Levantar nuevamente
+docker-compose up -d frontend-dev
+```
+
+#### Atajo: Reconstrucción Completa
+
+```bash
+# Detener, eliminar, reconstruir y levantar en un solo comando
+docker-compose down frontend-dev && docker-compose build frontend-dev && docker-compose up -d frontend-dev
 ```
 
 **Características del modo desarrollo:**
-- ✅ Hot Module Replacement (HMR)
-- ✅ File watching con polling (Windows compatible)
-- ✅ Volúmenes sincronizados
-- ✅ Recarga automática de cambios
+- ✅ **Hot Module Replacement (HMR)** - Cambios instantáneos
+- ✅ **File Watching** con polling (compatible con Windows/Docker)
+- ✅ **Volúmenes sincronizados** - Edita y ve cambios al instante
+- ✅ **Logs en consola** - Debug en tiempo real
+- ✅ **Source maps** - Debug con código original
 
 **Acceso:** `http://localhost:8080`
 
-#### Producción con Nginx (Puerto 8081)
+**Estructura de volúmenes:**
+```yaml
+volumes:
+  - .:/app              # Código fuente sincronizado
+  - /app/node_modules   # node_modules aislado
+```
+
+---
+
+### 🚀 Producción con Nginx
+
+El modo producción genera un build optimizado servido por Nginx.
+
+#### Construir y Levantar Producción
+
 ```bash
-# Levantar contenedor de producción
+# 1. Construir imagen de producción
+docker-compose build frontend-prod
+
+# 2. Levantar contenedor
 docker-compose up -d frontend-prod
 
-# Ver logs
-docker-compose logs -f frontend-prod
+# 3. Ver logs
+docker logs dicri-frontend-prod
+```
 
-# Detener contenedor
-docker-compose down frontend-prod
+#### Reconstruir Contenedor de Producción
+
+```bash
+# Detener y eliminar contenedor
+docker stop dicri-frontend-prod
+docker rm dicri-frontend-prod
+
+# Reconstruir imagen (necesario siempre que cambies código)
+docker-compose build frontend-prod
+
+# Levantar nuevamente
+docker-compose up -d frontend-prod
+```
+
+#### Atajo: Publicar Nueva Versión
+
+```bash
+# Comando completo para publicar cambios a producción
+docker stop dicri-frontend-prod && docker rm dicri-frontend-prod && docker-compose build frontend-prod && docker-compose up -d frontend-prod
+```
+
+#### Reconstrucción sin Caché (Problemas de build)
+
+```bash
+# Si hay problemas, reconstruir sin caché
+docker stop dicri-frontend-prod
+docker rm dicri-frontend-prod
+docker-compose build --no-cache frontend-prod
+docker-compose up -d frontend-prod
 ```
 
 **Características del modo producción:**
-- ✅ Build optimizado con code splitting
-- ✅ Nginx Alpine (imagen ligera)
-- ✅ Compresión gzip habilitada
-- ✅ Cache de assets
+- ✅ **Build optimizado** con code splitting y tree-shaking
+- ✅ **Nginx Alpine** (imagen ultra ligera ~40MB)
+- ✅ **Compresión gzip** habilitada
+- ✅ **Cache de assets estáticos** con headers
+- ✅ **SPA routing** configurado (`try_files`)
+- ✅ **Security headers** aplicados
+- ✅ **Source maps** incluidos para debug
 
 **Acceso:** `http://localhost:8081`
 
-### Docker Manual
+**Configuración de Nginx:** Ver archivo `nginx.conf`
 
-#### Build de Imagen
+---
+
+### 📦 Gestionar Ambos Contenedores
+
+#### Levantar Ambos Simultáneamente
+
 ```bash
-docker build -t dicri-frontend:latest \
-  --build-arg VITE_API_BASE_URL=http://localhost:3030/api \
-  .
+# Levantar desarrollo y producción
+docker-compose up -d frontend-dev frontend-prod
+
+# Verificar estado
+docker ps --filter "name=dicri-frontend"
 ```
 
-#### Ejecutar Contenedor
+#### Detener Ambos Contenedores
+
 ```bash
-docker run -d \
-  -p 8080:80 \
-  --name dicri-frontend \
-  --network dicri-network \
-  dicri-frontend:latest
+# Detener todos los contenedores del frontend
+docker stop dicri-frontend-dev dicri-frontend-prod
+
+# Detener y eliminar
+docker stop dicri-frontend-dev dicri-frontend-prod
+docker rm dicri-frontend-dev dicri-frontend-prod
 ```
 
-#### Detener y Limpiar
+#### Ver Logs de Ambos
+
 ```bash
-docker stop dicri-frontend
-docker rm dicri-frontend
-docker rmi dicri-frontend:latest
+# Logs intercalados de ambos contenedores
+docker-compose logs -f frontend-dev frontend-prod
+
+# O logs separados
+docker logs -f dicri-frontend-dev
+docker logs -f dicri-frontend-prod
 ```
 
-### Crear Red de Docker (Primera vez)
+---
+
+### 🔍 Comandos Útiles de Docker
+
+#### Inspeccionar Contenedores
+
 ```bash
+# Ver estado detallado
+docker ps -a --filter "name=dicri-frontend"
+
+# Inspeccionar configuración
+docker inspect dicri-frontend-prod
+
+# Ver uso de recursos
+docker stats dicri-frontend-dev dicri-frontend-prod
+```
+
+#### Acceder al Contenedor
+
+```bash
+# Entrar al contenedor de desarrollo
+docker exec -it dicri-frontend-dev sh
+
+# Entrar al contenedor de producción
+docker exec -it dicri-frontend-prod sh
+
+# Verificar archivos en producción
+docker exec dicri-frontend-prod ls -la /usr/share/nginx/html
+```
+
+#### Verificar Configuración de Nginx
+
+```bash
+# Ver configuración actual de Nginx
+docker exec dicri-frontend-prod cat /etc/nginx/conf.d/default.conf
+
+# Ver logs de Nginx
+docker exec dicri-frontend-prod cat /var/log/nginx/access.log
+docker exec dicri-frontend-prod cat /var/log/nginx/error.log
+```
+
+#### Limpiar Recursos Docker
+
+```bash
+# Eliminar imágenes no utilizadas
+docker image prune -a
+
+# Eliminar volúmenes no utilizados
+docker volume prune
+
+# Limpieza completa (cuidado!)
+docker system prune -a --volumes
+```
+
+---
+
+### 🌐 Crear Red de Docker (Primera vez)
+
+```bash
+# Crear red para comunicación entre contenedores
 docker network create dicri-network
+
+# Verificar red creada
+docker network ls | grep dicri
+
+# Inspeccionar red
+docker network inspect dicri-network
+```
+
+---
+
+### 🔧 Configuración Avanzada
+
+#### Variables de Entorno en Build
+
+Las variables `VITE_*` se inyectan en **tiempo de build**:
+
+```yaml
+# docker-compose.yml
+frontend-prod:
+  build:
+    args:
+      VITE_API_BASE_URL: http://localhost:3030/api
+```
+
+Para cambiar la API URL, edita `docker-compose.yml` y reconstruye:
+
+```bash
+# Editar docker-compose.yml
+# Cambiar VITE_API_BASE_URL: https://api.produccion.com/api
+
+# Reconstruir con nueva configuración
+docker-compose build --no-cache frontend-prod
+docker-compose up -d frontend-prod
+```
+
+#### Puertos Personalizados
+
+Para cambiar los puertos expuestos, edita `docker-compose.yml`:
+
+```yaml
+frontend-dev:
+  ports:
+    - "3000:5173"  # Cambiar 8080 por 3000
+
+frontend-prod:
+  ports:
+    - "9000:80"    # Cambiar 8081 por 9000
+```
+
+---
+
+### 🐳 Docker Manual (Sin docker-compose)
+
+Si prefieres usar Docker directamente sin docker-compose:
+
+#### Desarrollo
+
+```bash
+# Build
+docker build -f Dockerfile.dev -t dicri-frontend:dev .
+
+# Run
+docker run -d \
+  -p 8080:5173 \
+  -v ${PWD}:/app \
+  -v /app/node_modules \
+  -e VITE_API_BASE_URL=http://localhost:3030/api \
+  --name dicri-frontend-dev \
+  --network dicri-network \
+  dicri-frontend:dev
+
+# Logs
+docker logs -f dicri-frontend-dev
+
+# Stop
+docker stop dicri-frontend-dev && docker rm dicri-frontend-dev
+```
+
+#### Producción
+
+```bash
+# Build con argumentos
+docker build \
+  -t dicri-frontend:prod \
+  --build-arg VITE_API_BASE_URL=http://localhost:3030/api \
+  --target production-stage \
+  .
+
+# Run
+docker run -d \
+  -p 8081:80 \
+  --name dicri-frontend-prod \
+  --network dicri-network \
+  --restart unless-stopped \
+  dicri-frontend:prod
+
+# Logs
+docker logs -f dicri-frontend-prod
+
+# Stop
+docker stop dicri-frontend-prod && docker rm dicri-frontend-prod
+```
+
+---
+
+### 📊 Verificación de Despliegue
+
+#### Healthcheck de Desarrollo
+
+```bash
+# Verificar que el servidor Vite responde
+curl -I http://localhost:8080
+
+# Debe retornar: HTTP/1.1 200 OK
+```
+
+#### Healthcheck de Producción
+
+```bash
+# Verificar página principal
+curl -I http://localhost:8081
+
+# Verificar ruta de SPA (debe retornar index.html)
+curl -I http://localhost:8081/dashboard/expedientes
+
+# Verificar assets
+curl -I http://localhost:8081/assets/index-*.js
+
+# Todas deben retornar: HTTP/1.1 200 OK
+```
+
+#### Verificar Logs
+
+```bash
+# Ver últimas 50 líneas de logs
+docker logs --tail 50 dicri-frontend-dev
+docker logs --tail 50 dicri-frontend-prod
+
+# Logs en tiempo real con timestamps
+docker logs -f --timestamps dicri-frontend-prod
+```
+
+---
+
+### 🚨 Troubleshooting Docker
+
+#### Error: "Port already in use"
+
+```bash
+# Encontrar proceso usando el puerto
+# Windows PowerShell
+Get-NetTCPConnection -LocalPort 8080 | Select-Object OwningProcess
+Stop-Process -Id <PID> -Force
+
+# Linux
+lsof -ti:8080 | xargs kill -9
+```
+
+#### Error: "Cannot connect to Docker daemon"
+
+```bash
+# Windows: Iniciar Docker Desktop
+# Linux:
+sudo systemctl start docker
+sudo usermod -aG docker $USER
+```
+
+#### Error: "Network dicri-network not found"
+
+```bash
+# Crear la red
+docker network create dicri-network
+```
+
+#### Contenedor No Inicia
+
+```bash
+# Ver logs completos
+docker logs dicri-frontend-prod
+
+# Verificar que la imagen se construyó
+docker images | grep dicri-frontend
+
+# Reconstruir sin caché
+docker-compose build --no-cache frontend-prod
+```
+
+#### Hot Reload No Funciona (Windows)
+
+Verifica que `vite.config.ts` tenga:
+
+```typescript
+server: {
+  watch: {
+    usePolling: true,  // Necesario para Docker en Windows
+  },
+}
+```
+
+---
+
+### 📝 Resumen de Comandos
+
+#### Desarrollo
+
+```bash
+# Inicio rápido
+docker-compose up -d frontend-dev
+
+# Reconstruir
+docker-compose down frontend-dev && docker-compose build frontend-dev && docker-compose up -d frontend-dev
+
+# Ver logs
+docker logs -f dicri-frontend-dev
+```
+
+#### Producción
+
+```bash
+# Construir y desplegar
+docker-compose build frontend-prod && docker-compose up -d frontend-prod
+
+# Actualizar con cambios
+docker stop dicri-frontend-prod && docker rm dicri-frontend-prod && docker-compose build frontend-prod && docker-compose up -d frontend-prod
+
+# Ver logs
+docker logs -f dicri-frontend-prod
+```
+
+#### Ambos
+
+```bash
+# Levantar ambos
+docker-compose up -d
+
+# Detener ambos
+docker-compose down
+
+# Reconstruir ambos
+docker-compose build && docker-compose up -d
+
+# Ver estado
+docker ps --filter "name=dicri-frontend"
 ```
 
 ---

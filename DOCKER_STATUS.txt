@@ -1,0 +1,39 @@
+﻿
+========================================
+    DICRI INDICIOS - FRONTEND
+    Estado de Contenedores Docker
+========================================
+
+ DESARROLLO (Hot Reload)
+   URL: http://localhost:8080
+   Estado: Activo
+   Features:
+   - Hot Module Replacement
+   - File Watching
+   - Debug con Source Maps
+
+ PRODUCCIÓN (Optimizado)
+   URL: http://localhost:8081
+   Estado: Activo
+   Features:
+   - Build optimizado
+   - Nginx + Gzip
+   - Cache de assets
+
+========================================
+    Comandos Rápidos
+========================================
+
+ Ver logs:
+   docker logs -f dicri-frontend-dev
+   docker logs -f dicri-frontend-prod
+
+ Reconstruir:
+   Dev:  docker-compose down frontend-dev && docker-compose up -d frontend-dev
+   Prod: docker stop dicri-frontend-prod && docker rm dicri-frontend-prod && docker-compose build frontend-prod && docker-compose up -d frontend-prod
+
+ Detener:
+   docker stop dicri-frontend-dev dicri-frontend-prod
+
+========================================
+

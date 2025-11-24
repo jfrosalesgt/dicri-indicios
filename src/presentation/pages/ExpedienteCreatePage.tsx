@@ -67,7 +67,6 @@ export const ExpedienteCreatePage = () => {
         fecha_inicio: data.fechaInicio,
         id_fiscalia: Number(data.idFiscalia),
         descripcion_hechos: data.descripcionHechos.trim() || undefined,
-        activo: data.activo,
       });
 
       if (!res.success || !res.data) {

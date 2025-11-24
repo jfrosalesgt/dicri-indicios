@@ -33,22 +33,36 @@ export class HttpClient {
   private setupInterceptors(): void {
     this.client.interceptors.request.use(
       (config) => {
+        console.log('📤 HTTP Request:', config.method?.toUpperCase(), config.url);
         // ✅ Obtener token solo cuando se necesita
         const token = this.getToken?.();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
+          console.log('🔐 Token añadido a la petición');
         }
         return config;
       },
-      (error) => Promise.reject(error)
+      (error) => {
+        console.error('❌ Error en request interceptor:', error);
+        return Promise.reject(error);
+      }
     );
 
     this.client.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        console.log('📥 HTTP Response:', response.status, response.config.url);
+        return response;
+      },
       (error: AxiosError) => {
+        console.error('❌ HTTP Error:', error.response?.status, error.config?.url);
+        console.error('❌ Error data:', error.response?.data);
+        
         if (error.response?.status === 401) {
-          // ✅ Solo limpiar en cliente, no tocar Redux aquí
-          window.location.href = '/login';
+          console.warn('⚠️ 401 Unauthorized - Redirigiendo a login');
+          // ✅ Solo redirigir si NO estamos ya en login
+          if (!window.location.pathname.includes('/login')) {
+            window.location.href = '/login';
+          }
         }
         return Promise.reject(error);
       }

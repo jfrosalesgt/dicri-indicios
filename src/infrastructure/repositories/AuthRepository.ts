@@ -3,30 +3,36 @@ import type { LoginCredentials, LoginResponse, AuthUser, ChangePasswordRequest }
 import type { User } from '../../domain/entities/User';
 import type { ApiResponse } from '../../domain/entities/ApiResponse';
 import { httpClient } from '../http/HttpClient';
-import { jwtDecode } from 'jwt-decode';
-import { config } from '../config/config';
 
 export class AuthRepository implements IAuthRepository {
   private readonly baseUrl = '/auth';
 
   async login(credentials: LoginCredentials): Promise<ApiResponse<LoginResponse>> {
     try {
+      console.log('🔵 AuthRepository: Iniciando login...', credentials.nombre_usuario);
+      
       const response = await httpClient.post<ApiResponse<any>>(
         `${this.baseUrl}/login`,
         credentials
       );
 
+      console.log('✅ AuthRepository: Respuesta recibida', response.status, response.data);
+
       // ✅ Solo retornar datos, Redux se encarga de guardar
-      if (response.data && response.data.usuario && !response.data.user) {
-        response.data.user = response.data.usuario;
+      if (response.data && (response.data as any).usuario && !(response.data as any).user) {
+        (response.data as any).user = (response.data as any).usuario;
       }
 
       return response.data;
     } catch (error: any) {
+      console.error('❌ AuthRepository: Error en login', error);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
+      
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Error al iniciar sesión',
-        data: null
+        data: undefined
       };
     }
   }

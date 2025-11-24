@@ -38,13 +38,12 @@ RUN npm run build
 # ==========================================
 # 3. ETAPA DE PRODUCCIÓN (production-stage)
 # ==========================================
-# Esta imagen es ligera y solo tiene Nginx (NO tiene Node/NPM)
 FROM nginx:alpine AS production-stage
 
-# Copiamos la configuración de nginx si la tienes (opcional)
+# ✅ Copiar configuración personalizada de Nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copiamos los archivos generados en la etapa 'build-stage'
+# Copiar archivos del build
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 
 EXPOSE 80
