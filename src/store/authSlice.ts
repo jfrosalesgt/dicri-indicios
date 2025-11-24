@@ -137,10 +137,8 @@ const authSlice = createSlice({
       state.modulos = [];
       state.perfiles = [];
       state.roles = [];
-      // ✅ Redux Persist limpia automáticamente
     });
 
-    // Change Password
     builder.addCase(changePasswordAsync.pending, (state) => {
       state.isLoading = true;
       state.error = null;
@@ -150,7 +148,6 @@ const authSlice = createSlice({
       state.needsPasswordChange = false;
       if (state.user) {
         state.user.cambiar_clave = false;
-        // ✅ Redux Persist actualiza automáticamente
       }
     });
     builder.addCase(changePasswordAsync.rejected, (state, action) => {

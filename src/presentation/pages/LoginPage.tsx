@@ -22,7 +22,6 @@ export const LoginPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  // ✅ React Hook Form
   const { control, handleSubmit, formState: { errors, isValid } } = useForm<LoginFormData>({
     mode: 'onChange',
     defaultValues: {
@@ -43,10 +42,8 @@ export const LoginPage = () => {
         clave: data.clave 
       });
       
-      // ✅ Esperar a que Redux Persist guarde
       await new Promise(resolve => setTimeout(resolve, 150));
       
-      // ✅ Navegar según módulos disponibles
       const hasExpedientes = modulos.some(m => 
         m.ruta === '/expedientes' || 
         m.ruta === '/dashboard/expedientes' || 

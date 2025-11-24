@@ -22,7 +22,6 @@ export const ExpedienteCreatePage = () => {
   const [saving, setSaving] = useState(false);
   const [loadingFiscalias, setLoadingFiscalias] = useState(false);
 
-  // ✅ React Hook Form
   const { control, handleSubmit, formState: { errors, isValid }, watch } = useForm<FormData>({
     mode: 'onChange',
     defaultValues: {

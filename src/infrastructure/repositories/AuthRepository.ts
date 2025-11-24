@@ -9,25 +9,17 @@ export class AuthRepository implements IAuthRepository {
 
   async login(credentials: LoginCredentials): Promise<ApiResponse<LoginResponse>> {
     try {
-      console.log('🔵 AuthRepository: Iniciando login...', credentials.nombre_usuario);
-      
       const response = await httpClient.post<ApiResponse<any>>(
         `${this.baseUrl}/login`,
         credentials
       );
 
-      console.log('✅ AuthRepository: Respuesta recibida', response.status, response.data);
-
-      // ✅ Solo retornar datos, Redux se encarga de guardar
       if (response.data && (response.data as any).usuario && !(response.data as any).user) {
         (response.data as any).user = (response.data as any).usuario;
       }
 
       return response.data;
     } catch (error: any) {
-      console.error('❌ AuthRepository: Error en login', error);
-      console.error('❌ Error response:', error.response?.data);
-      console.error('❌ Error status:', error.response?.status);
       
       return {
         success: false,

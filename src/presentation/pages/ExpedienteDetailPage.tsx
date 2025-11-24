@@ -17,7 +17,7 @@ export const ExpedienteDetailPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const fromRevision = (location.state as any)?.fromRevision === true;
-  const { roles, isLoading: rolesLoading } = useAuth(); // ✅ Solo necesita roles
+  const { roles, isLoading: rolesLoading } = useAuth();
   const canReview = roles?.some(r => r.nombre_role === 'COORDINADOR_DICRI' || r.nombre_role === 'ADMIN');
   const canSendReview = roles?.some(r => r.nombre_role === 'TECNICO_DICRI' || r.nombre_role === 'ADMIN');
 
@@ -42,7 +42,6 @@ export const ExpedienteDetailPage = () => {
   const [approving, setApproving] = useState(false);
   const minReject = 10;
 
-  // ✅ React Hook Form para el formulario de rechazo
   const { control: rejectControl, handleSubmit: handleRejectSubmit, formState: { errors: rejectErrors, isValid: rejectIsValid }, reset: resetReject } = useForm<RejectFormData>({
     mode: 'onChange',
     defaultValues: {
@@ -180,7 +179,7 @@ export const ExpedienteDetailPage = () => {
 
   const openRejectDialog = async () => {
     if (!expediente) return;
-    resetReject(); // ✅ Limpiar formulario
+    resetReject();
     setRejectOpen(true);
     setRejectLoading(true);
     setRejectError('');
@@ -218,7 +217,7 @@ export const ExpedienteDetailPage = () => {
       });
       setRejectOpen(false);
       setSentNotifyOpen(true);
-      resetReject(); // ✅ Limpiar formulario
+      resetReject();
     } catch(e:any) {
       setRejectError(e.message || 'Error al rechazar');
     } finally {

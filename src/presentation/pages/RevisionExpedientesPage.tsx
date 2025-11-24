@@ -22,7 +22,6 @@ export const RevisionExpedientesPage = () => {
   const [rejecting, setRejecting] = useState(false);
   const minJust = 10;
 
-  // ✅ React Hook Form para el formulario de rechazo
   const { control, handleSubmit, formState: { errors, isValid }, reset } = useForm<RejectFormData>({
     mode: 'onChange',
     defaultValues: {
@@ -69,7 +68,7 @@ export const RevisionExpedientesPage = () => {
 
   const openReject = (id: number) => {
     setCurrentId(id);
-    reset(); // ✅ Limpiar formulario
+    reset();
     setRejectOpen(true);
   };
 
@@ -85,7 +84,7 @@ export const RevisionExpedientesPage = () => {
       if (!res.success) throw new Error(res.message || 'Error al rechazar');
       
       setRejectOpen(false);
-      reset(); // ✅ Limpiar formulario
+      reset();
       load();
     } catch (e: any) { 
       setError(e.message || 'Error al rechazar'); 
@@ -160,7 +159,6 @@ export const RevisionExpedientesPage = () => {
         </Box>
       </Card>
 
-      {/* ✅ Dialog con React Hook Form */}
       <Dialog 
         open={rejectOpen} 
         onClose={() => !rejecting && setRejectOpen(false)} 

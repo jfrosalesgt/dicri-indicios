@@ -21,7 +21,6 @@ export const FiscaliaDetailPage = () => {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // ✅ React Hook Form
   const { control, handleSubmit, formState: { errors, isValid }, setValue } = useForm<FiscaliaFormData>({
     mode: 'onChange',
     defaultValues: {
@@ -41,7 +40,6 @@ export const FiscaliaDetailPage = () => {
         const res = await fiscaliaRepository.getById(Number(id));
         if (res.success && res.data) {
           setItem(res.data);
-          // ✅ Cargar datos en el formulario
           setValue('nombre_fiscalia', res.data.nombre_fiscalia);
           setValue('direccion', res.data.direccion || '');
           setValue('telefono', res.data.telefono || '');
@@ -294,7 +292,6 @@ export const FiscaliaDetailPage = () => {
                 onClick={() => {
                   setEdit(false);
                   setError('');
-                  // ✅ Restaurar valores originales
                   if (item) {
                     setValue('nombre_fiscalia', item.nombre_fiscalia);
                     setValue('direccion', item.direccion || '');

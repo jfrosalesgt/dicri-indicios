@@ -20,7 +20,6 @@ export const TipoIndicioDetailPage = () => {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // ✅ React Hook Form
   const { control, handleSubmit, formState: { errors, isValid }, setValue } = useForm<TipoIndicioFormData>({
     mode: 'onChange',
     defaultValues: {
@@ -39,7 +38,6 @@ export const TipoIndicioDetailPage = () => {
         const res = await tipoIndicioRepository.getById(Number(id));
         if (res.success && res.data) {
           setItem(res.data);
-          // ✅ Cargar datos en el formulario
           setValue('nombre_tipo', res.data.nombre_tipo);
           setValue('descripcion', res.data.descripcion || '');
           setValue('activo', res.data.activo);
@@ -262,7 +260,6 @@ export const TipoIndicioDetailPage = () => {
                 onClick={() => {
                   setEdit(false);
                   setError('');
-                  // ✅ Restaurar valores originales
                   if (item) {
                     setValue('nombre_tipo', item.nombre_tipo);
                     setValue('descripcion', item.descripcion || '');

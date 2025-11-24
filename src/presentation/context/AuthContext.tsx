@@ -36,7 +36,7 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const dispatch = useAppDispatch();
-  const [isInitialized, setIsInitialized] = useState(false); // ✅ Nuevo estado
+  const [isInitialized, setIsInitialized] = useState(false);
   
   const {
     isAuthenticated,
@@ -48,11 +48,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     needsPasswordChange,
   } = useAppSelector((state) => state.auth);
 
-  // ✅ isLoading debe incluir la inicialización
   const isLoading = stateLoading || !isInitialized;
 
   useEffect(() => {
-    // ✅ Verificar si Redux Persist ya cargó el estado
     const initAuth = async () => {
       if (isAuthenticated && user && modulos.length > 0) {
         // Ya hay sesión activa, validar token
@@ -66,7 +64,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     initAuth();
-  }, []); // ✅ Solo ejecutar una vez al montar
+  }, []);
 
   const verifyToken = async (): Promise<boolean> => {
     if (!isAuthenticated) return false;

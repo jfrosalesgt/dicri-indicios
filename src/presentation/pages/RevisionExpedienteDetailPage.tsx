@@ -30,7 +30,6 @@ export const RevisionExpedienteDetailPage = () => {
   const [notify, setNotify] = useState(false);
   const [loadExtra, setLoadExtra] = useState(false);
 
-  // ✅ React Hook Form para comentarios opcionales de aprobación
   const { control, handleSubmit, reset } = useForm<ApprovalFormData>({
     mode: 'onChange',
     defaultValues: {
@@ -66,7 +65,7 @@ export const RevisionExpedienteDetailPage = () => {
 
   const openApproveDialog = async () => {
     await loadRelated();
-    reset(); // ✅ Limpiar formulario
+    reset();
     setDialogOpen(true);
   };
 
@@ -74,7 +73,6 @@ export const RevisionExpedienteDetailPage = () => {
     if (!expediente) return;
     setApproving(true);
     try {
-      // ✅ Podrías enviar los comentarios al backend si lo necesitas
       const res = await expedienteRepository.aprobar(expediente.id_investigacion);
       if (!res.success) throw new Error(res.message || 'Error al aprobar');
       setNotify(true);
@@ -152,7 +150,6 @@ export const RevisionExpedienteDetailPage = () => {
         </Box>
       </Card>
 
-      {/* ✅ Dialog con React Hook Form */}
       <Dialog 
         open={dialogOpen} 
         onClose={() => !approving && setDialogOpen(false)} 
@@ -176,7 +173,6 @@ export const RevisionExpedienteDetailPage = () => {
                   <Typography variant="body2"><strong>Indicios registrados:</strong> {indicios.length}</Typography>
                 </Box>
 
-                {/* ✅ Campo opcional de comentarios */}
                 <Controller
                   name="comentarios"
                   control={control}

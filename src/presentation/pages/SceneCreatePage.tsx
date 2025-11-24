@@ -21,7 +21,6 @@ export const SceneCreatePage = () => {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // ✅ React Hook Form
   const { control, handleSubmit, formState: { errors, isValid } } = useForm<FormData>({
     mode: 'onChange',
     defaultValues: {

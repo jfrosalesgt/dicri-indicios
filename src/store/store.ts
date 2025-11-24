@@ -9,7 +9,6 @@ const persistConfig = {
   key: 'root',
   storage,
   whitelist: ['auth'],
-  // ✅ Reducir timeout de serialize check
   timeout: 1000,
 };
 
@@ -25,15 +24,12 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-        // ✅ Reducir checks innecesarios
         warnAfter: 128,
       },
-      // ✅ Optimizar immutability checks
       immutableCheck: {
         warnAfter: 128,
       },
     }),
-  // ✅ Solo DevTools en desarrollo
   devTools: import.meta.env.DEV,
 });
 

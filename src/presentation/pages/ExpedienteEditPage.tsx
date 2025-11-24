@@ -27,7 +27,6 @@ export const ExpedienteEditPage = () => {
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
 
-  // ✅ React Hook Form
   const { control, handleSubmit, formState: { errors, isValid }, setValue } = useForm<FormData>({
     mode: 'onChange',
     defaultValues: {
@@ -48,8 +47,7 @@ export const ExpedienteEditPage = () => {
         const res = await expedienteRepository.getById(Number(id));
         if (res.success && res.data) {
           setExpediente(res.data);
-          // ✅ Cargar valores en el formulario
-          setValue('nombreCaso', res.data.nombre_caso);
+          setValue('codigo_caso', res.data.codigo_caso);
           setValue('fechaInicio', res.data.fecha_inicio.slice(0,10));
           setValue('idFiscalia', res.data.id_fiscalia);
           setValue('descripcionHechos', res.data.descripcion_hechos || '');
@@ -88,7 +86,7 @@ export const ExpedienteEditPage = () => {
         fecha_inicio: data.fechaInicio,
         id_fiscalia: Number(data.idFiscalia),
         descripcion_hechos: data.descripcionHechos.trim() || undefined,
-        estado_revision_dicri: expediente.estado_revision_dicri, // ✅ Mantener el estado actual
+        estado_revision_dicri: expediente.estado_revision_dicri,
         activo: data.activo,
       });
 

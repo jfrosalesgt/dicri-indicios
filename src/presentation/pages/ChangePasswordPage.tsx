@@ -27,7 +27,6 @@ export const ChangePasswordPage = () => {
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
 
-  // ✅ React Hook Form
   const { control, handleSubmit, formState: { errors, isValid }, watch, reset } = useForm<PasswordFormData>({
     mode: 'onChange',
     defaultValues: {
@@ -37,28 +36,23 @@ export const ChangePasswordPage = () => {
     },
   });
 
-  // ✅ Watch para validar en tiempo real
   const nextPassword = watch('next');
   const confirmPassword = watch('confirm');
 
-  // ✅ Calcular fuerza de contraseña
   const strengthCount = rules.reduce((acc, r) => acc + (r.test(nextPassword) ? 1 : 0), 0);
   const strength = (strengthCount / rules.length) * 100;
 
-  // ✅ Validar que todas las reglas se cumplan
   const allRulesMet = rules.every(r => r.test(nextPassword));
 
   const onSubmit = async (data: PasswordFormData) => {
     setError('');
     setDone(false);
 
-    // ✅ Validación de coincidencia
     if (data.next !== data.confirm) {
       setError('Las contraseñas nuevas no coinciden');
       return;
     }
 
-    // ✅ Validación de requisitos
     if (!allRulesMet) {
       setError('La nueva contraseña no cumple los requisitos mínimos');
       return;
@@ -71,7 +65,7 @@ export const ChangePasswordPage = () => {
         clave_nueva: data.next 
       });
       setDone(true);
-      reset(); // ✅ Limpiar formulario
+      reset();
     } catch (err: any) {
       setError(err.message || 'Error al cambiar contraseña');
     } finally {

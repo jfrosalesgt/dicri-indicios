@@ -27,7 +27,6 @@ export const IndicioCreatePage = () => {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // ✅ React Hook Form
   const { control, handleSubmit, formState: { errors, isValid }, setValue } = useForm<FormData>({
     mode: 'onChange',
     defaultValues: {

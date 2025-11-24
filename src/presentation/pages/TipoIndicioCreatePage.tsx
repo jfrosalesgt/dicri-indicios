@@ -15,7 +15,6 @@ export const TipoIndicioCreatePage = () => {
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ✅ React Hook Form
   const { control, handleSubmit, formState: { errors, isValid } } = useForm<TipoIndicioFormData>({
     mode: 'onChange',
     defaultValues: {

@@ -170,7 +170,6 @@ export const ExpedientesListPage = () => {
                       >
                         Ver
                       </Button>
-                      {/* ✅ Mostrar botón Editar solo si está EN_REGISTRO */}
                       {exp.estado_revision_dicri === 'EN_REGISTRO' && (
                         <>
                           {' '}

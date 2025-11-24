@@ -12,8 +12,8 @@ const tiles = [
 
 export const AdminHomePage = () => {
   const navigate = useNavigate();
-  const { roles } = useAuth(); // ✅ Solo necesita roles
-  const isAdmin = roles.some(r => r.nombre_role === 'ADMIN');
+  const { roles } = useAuth();
+  const isAdmin = roles?.some(r => r.nombre_role === 'ADMIN');
 
   // ❌ REMOVER verificación redundante si existe
 

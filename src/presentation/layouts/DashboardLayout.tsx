@@ -150,7 +150,6 @@ export const DashboardLayout = () => {
         </Toolbar>
       </AppBar>
 
-      {/* ✅ Drawer Temporal para móviles */}
       <Drawer
         variant="temporary"
         open={isMobile && isSidebarOpen}
@@ -171,7 +170,6 @@ export const DashboardLayout = () => {
         {drawerContent}
       </Drawer>
 
-      {/* ✅ Drawer Persistente solo para desktop */}
       <Drawer
         variant="persistent"
         open={!isMobile && isSidebarOpen}
@@ -201,13 +199,11 @@ export const DashboardLayout = () => {
         sx={{
           p: { xs: 2, md: 4 },
           width: '100%',
-          // ✅ Margin-left solo en desktop cuando sidebar está abierto
           ml: { xs: 0, md: !isMobile && isSidebarOpen ? `${drawerWidth}px` : 0 },
           transition: (theme) => theme.transitions.create(['margin-left', 'padding'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
           }),
-          // ✅ Asegurar que esté por encima del backdrop
           position: 'relative',
           zIndex: 1,
         }}

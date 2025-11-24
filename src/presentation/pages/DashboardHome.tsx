@@ -33,7 +33,7 @@ export const DashboardHome = () => {
   
   useEffect(()=>{ 
     load(); 
-  }, []); // ✅ Solo cargar una vez
+  }, []);
 
   return (
     <Box className="dashboard-home">

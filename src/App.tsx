@@ -6,11 +6,9 @@ import { ErrorBoundary } from './presentation/components/ErrorBoundary';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import './App.css';
 
-// ✅ Componentes críticos cargados inmediatamente
 import { LoginPage } from './presentation/pages/LoginPage';
 import { DashboardLayout } from './presentation/layouts/DashboardLayout';
 
-// ✅ Componentes lazy-loaded (solo cuando se necesitan)
 const DashboardHome = lazy(() => import('./presentation/pages/DashboardHome').then(m => ({ default: m.DashboardHome })));
 const ChangePasswordPage = lazy(() => import('./presentation/pages/ChangePasswordPage').then(m => ({ default: m.ChangePasswordPage })));
 const ExpedientesListPage = lazy(() => import('./presentation/pages/ExpedientesListPage').then(m => ({ default: m.ExpedientesListPage })));
@@ -39,7 +37,6 @@ const SceneCreatePage = lazy(() => import('./presentation/pages/SceneCreatePage'
 const SceneEditPage = lazy(() => import('./presentation/pages/SceneEditPage').then(m => ({ default: m.SceneEditPage })));
 const SceneIndiciosPage = lazy(() => import('./presentation/pages/SceneIndiciosPage').then(m => ({ default: m.SceneIndiciosPage })));
 
-// ✅ Componente de loading reutilizable
 const PageLoader = () => (
   <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" minHeight="400px" gap={2}>
     <CircularProgress size={40} />

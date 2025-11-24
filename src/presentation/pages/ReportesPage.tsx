@@ -18,7 +18,6 @@ interface FiltrosFormData {
   searchText: string;
 }
 
-// ✅ Hook personalizado para debounce
 const useDebounce = (value: string, delay: number = 300) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -40,11 +39,9 @@ export const ReportesPage = () => {
   const inicioDef = `${hoy.getFullYear()}-01-01`;
   const finDef = `${hoy.getFullYear()}-12-31`;
 
-  // ✅ Estado separado para búsqueda (NO en React Hook Form)
   const [searchText, setSearchText] = useState('');
   const debouncedSearchText = useDebounce(searchText, 300);
 
-  // ✅ React Hook Form solo para filtros de fecha y estado
   const { control, handleSubmit, watch } = useForm<FiltrosFormData>({
     mode: 'onChange',
     defaultValues: {
@@ -65,7 +62,6 @@ export const ReportesPage = () => {
   const fechaInicio = watch('fechaInicio');
   const fechaFin = watch('fechaFin');
 
-  // ✅ Cargar estadísticas generales
   const loadStats = async () => {
     setStatsLoading(true); 
     setStatsError('');
@@ -83,7 +79,6 @@ export const ReportesPage = () => {
     }
   };
 
-  // ✅ Enviar formulario de filtros
   const onSubmit = async (data: any) => {
     setLoading(true); 
     setError('');
@@ -107,11 +102,9 @@ export const ReportesPage = () => {
 
   useEffect(() => { 
     loadStats(); 
-    // ✅ Cargar reporte inicial
     onSubmit({ fechaInicio: inicioDef, fechaFin: finDef, estado: '' });
   }, []);
 
-  // ✅ Filtrado memoizado con useCallback para evitar recreación
   const filteredItems = useMemo(() => {
     if (!debouncedSearchText.trim()) return items;
     
@@ -130,7 +123,6 @@ export const ReportesPage = () => {
     });
   }, [items, debouncedSearchText]);
 
-  // ✅ Handler optimizado con useCallback
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
   }, []);
@@ -163,7 +155,6 @@ export const ReportesPage = () => {
           Reporte de Revisión de Expedientes
         </Typography>
 
-        {/* ✅ Formulario con React Hook Form */}
         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={2} mb={2}>
             <Grid item xs={12} md={4}>
@@ -220,7 +211,6 @@ export const ReportesPage = () => {
                   )}
                 />
                 
-                {/* ✅ Input NO controlado por React Hook Form */}
                 <TextField
                   label="Filtro texto"
                   placeholder="Buscar..."

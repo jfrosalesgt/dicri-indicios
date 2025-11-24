@@ -1,7 +1,7 @@
 import {
   Home as HomeIcon,
   Folder as FolderIcon,
-  CheckBox as CheckBoxIcon, // ✅ Reemplaza CheckSquare
+  CheckBox as CheckBoxIcon,
   BarChart as BarChartIcon,
   Settings as SettingsIcon,
   Description as DescriptionIcon,
